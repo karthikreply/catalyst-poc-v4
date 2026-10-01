@@ -22,7 +22,7 @@ function selectIds(graph: typeof initialSessionGraph, ids: string[]) {
 }
 
 describe("walk A/B/C", () => {
-  it("Walk A — customer door Reply miss → sample rank → book three", () => {
+  it("Walk A — customer door Reply miss → sample rank → book one", () => {
     expect(lookupAccount("Reply", "customer")).toMatchObject({
       hit: false,
       query: "Reply",
@@ -46,8 +46,8 @@ describe("walk A/B/C", () => {
     );
     expect(graph.session.customerName).toBe("Reply");
     const ids = rankedSolutions(graph).map((solution) => solution.id);
-    graph = selectIds(graph, ids.slice(0, 3));
-    expect(toggleSelected(graph, ids[3]).ranking.selected).toEqual(graph.ranking.selected);
+    graph = selectIds(graph, ids.slice(0, 1));
+    expect(toggleSelected(graph, ids[1]).ranking.selected).toEqual(graph.ranking.selected);
 
     graph = bookHackathon(graph, {
       date: "2026-10-14",
@@ -56,9 +56,9 @@ describe("walk A/B/C", () => {
       customerOwner: "Dana Reyes",
       question: "Can we prove the three?",
     });
-    expect(graph.hackathon?.solutionIds).toHaveLength(3);
+    expect(graph.hackathon?.solutionIds).toHaveLength(1);
     expect(unlockRanking(graph)).toBe(graph);
-    expect(bookedSolutionTitles(graph)).toHaveLength(3);
+    expect(bookedSolutionTitles(graph)).toHaveLength(1);
   });
 
   it("Walk B — partner Heartland hit → mechanic switch → book persists across switch", () => {
@@ -71,14 +71,14 @@ describe("walk A/B/C", () => {
     }
 
     const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id);
-    let graph = selectIds(initialSessionGraph, ids.slice(0, 3));
+    let graph = selectIds(initialSessionGraph, ids.slice(0, 1));
     graph = applyMechanic(graph, "ghost-ledger");
     expect(graph.ranking.order).toEqual(initialSessionGraph.ranking.order);
     expect(graph.ranking.selected).toEqual([]);
     expect(rankedSolutions(graph)).toHaveLength(3);
 
     const ledgerIds = rankedSolutions(graph).map((solution) => solution.id);
-    graph = selectIds(graph, ledgerIds.slice(0, 3));
+    graph = selectIds(graph, ledgerIds.slice(0, 1));
     graph = lockRanking(graph);
     expect(graph.ranking.locked).toBe(true);
     graph = unlockRanking(graph);
@@ -92,7 +92,7 @@ describe("walk A/B/C", () => {
       question: "Ledger path?",
     });
     const titles = bookedSolutionTitles(graph);
-    expect(titles).toHaveLength(3);
+    expect(titles).toHaveLength(1);
     const switched = applyMechanic(graph, "value-sprint");
     expect(switched.hackathon?.solutionIds).toEqual(graph.hackathon?.solutionIds);
     expect(bookedSolutionTitles(switched)).toEqual(titles);
@@ -120,7 +120,7 @@ describe("walk A/B/C", () => {
     expect(voteTallies(graph)[ids[1]]).toBe(1);
     expect(graph.ranking.order).toEqual(order);
 
-    graph = selectIds(graph, ids.slice(0, 3));
+    graph = selectIds(graph, ids.slice(0, 1));
     graph = bookHackathon(graph, {
       date: "2026-12-01",
       googleFacilitator: "Priya Raghavan",
@@ -129,6 +129,6 @@ describe("walk A/B/C", () => {
       question: "Cold path?",
     });
     expect(graph.hackathon?.booked).toBe(true);
-    expect(graph.hackathon?.solutionIds).toHaveLength(3);
+    expect(graph.hackathon?.solutionIds).toHaveLength(1);
   });
 });

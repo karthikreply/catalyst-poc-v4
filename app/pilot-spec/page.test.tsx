@@ -58,7 +58,7 @@ describe("pilot spec", () => {
   });
 
   it("names the picked pilot as the use case and scope, and is unchanged without a pick", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
@@ -66,7 +66,7 @@ describe("pilot spec", () => {
       customerOwner: "Dana Reyes",
       question: "Can we prove the three?",
     });
-    const title = bookedSolutionTitles(booked)[1];
+    const title = bookedSolutionTitles(booked)[0];
 
     const fragment = { ...booked, outcome: { ...booked.outcome, useCase: "document" } };
     useSessionMock.mockReturnValue({ graph: fragment, brand: brands.cdw, viewer: { actor: "partner", name: "Ravi", org: "CDW" } });
@@ -77,7 +77,7 @@ describe("pilot spec", () => {
     expect(before).not.toContain("Six-week pilot on");
     expect(before).not.toContain("Scope</dt>");
 
-    const picked = setPilotPick(booked, booked.hackathon!.solutionIds[1]);
+    const picked = setPilotPick(booked, booked.hackathon!.solutionIds[0]);
     useSessionMock.mockReturnValue({ graph: picked, brand: brands.cdw, viewer: { actor: "partner", name: "Ravi", org: "CDW" } });
     const after = renderToStaticMarkup(<PilotSpecPage />);
     expect(after).toContain(`Use case</dt><dd class="mt-1 text-sm leading-6">${title}</dd>`);
@@ -86,7 +86,7 @@ describe("pilot spec", () => {
   });
 
   it("links day two for the customer and a facilitated partner, and shows counts to the PDM", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
     const locked = lockRanking(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph));
     const draft = {
       date: "2026-10-14",
@@ -123,7 +123,7 @@ describe("pilot spec", () => {
   });
 
   it("shows the booked hackathon, and no hackathon section before booking", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
     const selected = ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph);
     const booked = bookHackathon(selected, {
       date: "2026-10-14",
@@ -153,7 +153,7 @@ describe("pilot spec", () => {
   });
 
   it("names a blank hackathon role as not named yet", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",

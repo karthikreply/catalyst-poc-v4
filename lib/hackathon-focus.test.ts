@@ -17,7 +17,7 @@ import {
 import { buildTelemetrySessions, liveSessionOutcome, summarizeTelemetry } from "./telemetry";
 
 function selectThree(graph: SessionGraph = initialSessionGraph) {
-  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
+  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
   return ids.reduce((current, id) => toggleSelected(current, id), graph);
 }
 
@@ -30,38 +30,39 @@ const draft = {
 };
 
 describe("hackathon focus", () => {
-  it("keeps three solution ids through hydration", () => {
+  it("keeps the first solution id when hydrating a legacy booking", () => {
     const booked = bookHackathon(selectThree(), draft);
-    expect(booked.hackathon?.solutionIds).toHaveLength(3);
+    expect(booked.hackathon?.solutionIds).toHaveLength(1);
+    const first = booked.hackathon!.solutionIds[0];
     const stored = {
       ...booked,
-      ranking: { ...booked.ranking, selected: booked.hackathon!.solutionIds },
+      ranking: { ...booked.ranking, selected: [first, "sol-other", "sol-third"] },
+      hackathon: { ...booked.hackathon!, solutionIds: [first, "sol-other", "sol-third"] },
     };
     const loaded = hydrateSessionGraph(JSON.parse(JSON.stringify(stored)) as SessionGraph);
-    expect(loaded.ranking.selected).toEqual(booked.hackathon!.solutionIds);
-    expect(loaded.hackathon?.solutionIds).toEqual(booked.hackathon!.solutionIds);
+    expect(loaded.ranking.selected).toEqual([first]);
+    expect(loaded.hackathon?.solutionIds).toEqual([first]);
     expect(loaded.session.focus).toBe("session");
   });
 
-  it("confirms on the third selection for self-service and waits for the partner when facilitated", () => {
+  it("confirms on the selection for self-service and waits for the partner when facilitated", () => {
     const selfService = applyDeliveryMode(initialSessionGraph, "self-service");
     const ids = rankedSolutions(selfService).map((solution) => solution.id);
-    const two = [ids[0], ids[1]].reduce((current, id) => toggleSelected(current, id), selfService);
-    expect(two.ranking.locked).toBe(false);
-    const three = toggleSelected(two, ids[2]);
-    expect(three.ranking.selected).toEqual(ids.slice(0, 3));
-    expect(three.ranking.locked).toBe(true);
+    const chosen = toggleSelected(selfService, ids[0]);
+    expect(chosen.ranking.selected).toEqual([ids[0]]);
+    expect(chosen.ranking.locked).toBe(true);
+    expect(toggleSelected(chosen, ids[1]).ranking.selected).toEqual([ids[0]]);
 
     const facilitated = selectThree(initialSessionGraph);
     expect(facilitated.session.delivery).toBe("facilitated");
     expect(facilitated.ranking.locked).toBe(false);
-    expect(facilitated.ranking.selected).toHaveLength(3);
+    expect(facilitated.ranking.selected).toHaveLength(1);
   });
 
   it("returns the first book reason for the role and the shortlist state", () => {
     expect(bookBlockReason("pdm", selectThree())).toBe("The partner or customer books the hackathon.");
-    expect(bookBlockReason("partner", initialSessionGraph)).toBe("Choose three first.");
-    expect(bookBlockReason("customer", selectThree())).toBe("The partner confirms the three first.");
+    expect(bookBlockReason("partner", initialSessionGraph)).toBe("Choose one first.");
+    expect(bookBlockReason("customer", selectThree())).toBe("The partner confirms the choice first.");
     const confirmed = selectThree();
     const locked = { ...confirmed, ranking: { ...confirmed.ranking, locked: true } };
     expect(bookBlockReason("partner", locked)).toBeNull();
@@ -70,7 +71,7 @@ describe("hackathon focus", () => {
     expect(bookBlockReason("customer", chosen)).toBeNull();
   });
 
-  it("keeps the three solutions, the date, and the pilot status when focus or role changes", () => {
+  it("keeps the solution, the date, and the pilot status when focus or role changes", () => {
     const booked = bookHackathon(selectThree(), draft);
     const going = setPilotPick(booked, booked.hackathon!.solutionIds[0]);
     const focused = { ...going, session: { ...going.session, focus: "hackathon" as const } };
@@ -91,7 +92,7 @@ describe("hackathon focus", () => {
     expect(stopped.outcome.hackathonDecision).toBe("not-going-ahead");
     expect(liveSessionOutcome(stopped, true)).toBe("Hackathon decided");
     expect(markPilotSigned(stopped, "Ravi Menon").session.pilotSigned).toBeNull();
-    const signed = markPilotSigned(setPilotPick(booked, booked.hackathon!.solutionIds[1]), "Ravi Menon");
+    const signed = markPilotSigned(setPilotPick(booked, booked.hackathon!.solutionIds[0]), "Ravi Menon");
     expect(signed.session.pilotSigned?.recordedBy).toBe("Ravi Menon");
     expect(liveSessionOutcome(signed, true)).toBe("Pilot signed");
   });
@@ -103,6 +104,14 @@ describe("hackathon focus", () => {
     expect(summary.pilotsSigned).toBeLessThanOrEqual(summary.hackathonsDecided);
     expect(summary.pilotsSigned).toBeLessThan(summary.hackathonsDecided);
     expect(summary.hackathonsDecided).toBeLessThan(summary.hackathonsBooked);
+  });
+
+  it("opens booking once the solution is chosen, even if the run is still open", () => {
+    const chosen = selectThree(applyDeliveryMode(initialSessionGraph, "self-service"));
+    expect(chosen.agenda.every((step) => step.state === "done")).toBe(false);
+    expect(chosen.ranking.selected).toHaveLength(1);
+    expect(sessionReachedShortlist(chosen)).toBe(true);
+    expect(bookBlockReason("customer", chosen)).toBeNull();
   });
 
   it("guards a session that has not reached the shortlist", () => {

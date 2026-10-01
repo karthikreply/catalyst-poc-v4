@@ -247,7 +247,7 @@ describe("SessionProvider action permissions", () => {
   });
 
   describe("pilot pick", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
@@ -256,7 +256,7 @@ describe("SessionProvider action permissions", () => {
       question: "Can we prove the three?",
     });
 
-    it.each(["partner", "customer"] as const)("lets the %s set and replace the pilot pick", async (actor) => {
+    it.each(["partner", "customer"] as const)("lets the %s record Go on the booked solution", async (actor) => {
       const graph = actor === "customer"
         ? { ...booked, session: { ...booked.session, delivery: "self-service" as const } }
         : booked;
@@ -268,7 +268,7 @@ describe("SessionProvider action permissions", () => {
       expect(screen.getByLabelText("pilot-pick")).toHaveTextContent(ids[0]);
 
       fireEvent.click(screen.getByRole("button", { name: "Pick second" }));
-      expect(screen.getByLabelText("pilot-pick")).toHaveTextContent(ids[1]);
+      expect(screen.getByLabelText("pilot-pick")).toHaveTextContent(ids[0]);
     });
 
     it("does not let the PDM set the pilot pick", async () => {

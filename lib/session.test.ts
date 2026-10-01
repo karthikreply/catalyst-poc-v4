@@ -736,17 +736,17 @@ describe("scope access", () => {
   });
 
   it("explains why booking is unavailable, and the role check wins", () => {
-    const three = {
+    const one = {
       ...initialSessionGraph,
-      ranking: { ...initialSessionGraph.ranking, selected: ["a", "b", "c"] },
+      ranking: { ...initialSessionGraph.ranking, selected: ["a"] },
     };
-    expect(bookBlockReason("pdm", three)).toBe("The partner or customer books the hackathon.");
-    expect(bookBlockReason("partner", initialSessionGraph)).toBe("Choose three first.");
-    expect(bookBlockReason("customer", initialSessionGraph)).toBe("Choose three first.");
+    expect(bookBlockReason("pdm", one)).toBe("The partner or customer books the hackathon.");
+    expect(bookBlockReason("partner", initialSessionGraph)).toBe("Choose one first.");
+    expect(bookBlockReason("customer", initialSessionGraph)).toBe("Choose one first.");
     expect(bookBlockReason("pdm", initialSessionGraph)).toBe("The partner or customer books the hackathon.");
-    expect(bookBlockReason("partner", three)).toBe("The partner confirms the three first.");
-    expect(bookBlockReason("customer", three)).toBe("The partner confirms the three first.");
-    const confirmed = { ...three, ranking: { ...three.ranking, locked: true } };
+    expect(bookBlockReason("partner", one)).toBe("The partner confirms the choice first.");
+    expect(bookBlockReason("customer", one)).toBe("The partner confirms the choice first.");
+    const confirmed = { ...one, ranking: { ...one.ranking, locked: true } };
     expect(bookBlockReason("partner", confirmed)).toBeNull();
     expect(bookBlockReason("customer", confirmed)).toBeNull();
   });
@@ -917,18 +917,18 @@ describe("solution ranking and hackathon booking", () => {
     return ids.reduce((current, id) => toggleSelected(current, id), graph);
   }
 
-  it("caps selection at three and refuses a fourth", () => {
+  it("caps selection at one and refuses a second", () => {
     const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id);
-    const three = selectIds(initialSessionGraph, ids.slice(0, 3));
-    expect(three.ranking.selected).toHaveLength(3);
-    const fourth = toggleSelected(three, ids[3]);
-    expect(fourth.ranking.selected).toEqual(three.ranking.selected);
-    expect(selectedSolutions(three).map((s) => s.id)).toEqual(ids.slice(0, 3));
+    const one = selectIds(initialSessionGraph, ids.slice(0, 1));
+    expect(one.ranking.selected).toHaveLength(1);
+    const second = toggleSelected(one, ids[1]);
+    expect(second.ranking.selected).toEqual(one.ranking.selected);
+    expect(selectedSolutions(one).map((s) => s.id)).toEqual(ids.slice(0, 1));
   });
 
   it("refuses remove and move while locked, and unlock after booking is a no-op", () => {
     const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id);
-    const selected = selectIds(initialSessionGraph, ids.slice(0, 3));
+    const selected = selectIds(initialSessionGraph, ids.slice(0, 1));
     const locked = lockRanking(selected);
     expect(locked.ranking.locked).toBe(true);
     expect(toggleSelected(locked, ids[0])).toBe(locked);
@@ -941,16 +941,15 @@ describe("solution ranking and hackathon booking", () => {
       customerOwner: "Dana Reyes",
       question: "Can we prove the three selected solutions?",
     });
-    expect(booked.hackathon?.solutionIds).toEqual(ids.slice(0, 3));
-    expect(booked.hackathon?.solutionIds).not.toContain(ids[3]);
+    expect(booked.hackathon?.solutionIds).toEqual(ids.slice(0, 1));
     expect(unlockRanking(booked)).toBe(booked);
     expect(booked.outcome.nextStep).toContain("2026-10-14");
     expect(artifactLimitsCopy(booked).body).toContain("2026-10-14");
   });
 
-  it("books without prior lock when three are selected, and names them in funding copy", () => {
+  it("books without prior lock when one is selected, and names it in funding copy", () => {
     const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id);
-    const selected = selectIds(initialSessionGraph, ids.slice(0, 3));
+    const selected = selectIds(initialSessionGraph, ids.slice(0, 1));
     expect(lockRanking(initialSessionGraph).ranking.locked).toBe(false);
 
     const booked = bookHackathon(selected, {
@@ -963,7 +962,7 @@ describe("solution ranking and hackathon booking", () => {
     expect(booked.ranking.locked).toBe(true);
     expect(booked.hackathon?.booked).toBe(true);
     const titles = bookedSolutionTitles(booked);
-    expect(titles).toHaveLength(3);
+    expect(titles).toHaveLength(1);
     const ask = fundingAskCopy(booked);
     for (const title of titles) {
       expect(ask).toContain(title);
@@ -972,7 +971,7 @@ describe("solution ranking and hackathon booking", () => {
 
   it("filters shortlists by mechanic without dropping ranking.order ids", () => {
     const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id);
-    const selected = selectIds(initialSessionGraph, ids.slice(0, 3));
+    const selected = selectIds(initialSessionGraph, ids.slice(0, 1));
     expect(rankedSolutions(selected)).toHaveLength(4);
 
     const ledger = applyMechanic(selected, "ghost-ledger");
@@ -980,7 +979,7 @@ describe("solution ranking and hackathon booking", () => {
     expect(ledger.ranking.order).toEqual(initialSessionGraph.ranking.order);
     expect(ledger.ranking.selected).toEqual([]);
 
-    const reselected = selectIds(ledger, rankedSolutions(ledger).map((s) => s.id).slice(0, 3));
+    const reselected = selectIds(ledger, rankedSolutions(ledger).map((s) => s.id).slice(0, 1));
     const booked = bookHackathon(reselected, {
       date: "2026-11-01",
       googleFacilitator: "Priya Raghavan",
@@ -1048,7 +1047,7 @@ describe("solution ranking and hackathon booking", () => {
 
   it("clears booking selection and votes when entering cold scope", () => {
     const ids = rankedSolutions(initialSessionGraph).map((s) => s.id);
-    const seeded = castVote(selectIds(initialSessionGraph, ids.slice(0, 3)), "dana", ids[0]);
+    const seeded = castVote(selectIds(initialSessionGraph, ids.slice(0, 1)), "dana", ids[0]);
     const cold = applyColdScope(seeded, { name: "Reply", industry: "Technology", sizeBand: "1,000–5,000" }, [
       { id: "cold-1", name: "Dana Reyes", role: "Ops" },
     ]);
@@ -1073,7 +1072,7 @@ describe("solution ranking and hackathon booking", () => {
   });
 
   it("builds a Google stack and Calendar compose URL after booking", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
     const selected = ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph);
     const booked = bookHackathon(selected, {
       date: "2026-10-14",
@@ -1099,7 +1098,7 @@ describe("solution ranking and hackathon booking", () => {
   });
 
   it("marks the Calendar hold as done after the compose click", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
     const selected = ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph);
     const booked = bookHackathon(selected, {
       date: "2026-10-14",
@@ -1123,7 +1122,7 @@ describe("solution ranking and hackathon booking", () => {
 
 describe("customer home", () => {
   function bookThree(graph = initialSessionGraph) {
-    const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
     const selected = ids.reduce((current, id) => toggleSelected(current, id), graph);
     return bookHackathon(selected, {
       date: "2026-10-14",
@@ -1270,7 +1269,7 @@ describe("after the calendar hold: showcase and pilot pick", () => {
   };
 
   function bookThree(graph = initialSessionGraph, showcaseAt?: string) {
-    const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
+    const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
     const selected = ids.reduce((current, id) => toggleSelected(current, id), graph);
     return bookHackathon(selected, showcaseAt ? { ...draft, showcaseAt } : draft);
   }
@@ -1308,10 +1307,10 @@ describe("after the calendar hold: showcase and pilot pick", () => {
     const booked = bookThree();
     const rows = bookedSolutionPains(booked);
     expect(rows.map((row) => row.title)).toEqual(bookedSolutionTitles(booked));
-    const intake = rows.find((row) => row.id === "sol-intake-extraction")!;
+    const intake = rows[0];
+    expect(rows).toHaveLength(1);
+    expect(intake.id).toBe("sol-intake-extraction");
     expect(intake.pain).toBe("We handled Q1 volume by paying overtime, not by hiring.");
-    const review = rows.find((row) => row.id === "sol-low-confidence-review")!;
-    expect(review.pain).toBe("Our forms have handwritten adjuster notes in the margin.");
 
     const noCaptures = { ...booked, captures: [] };
     expect(bookedSolutionPains(noCaptures).map((row) => row.pain)).toEqual(
@@ -1320,23 +1319,21 @@ describe("after the calendar hold: showcase and pilot pick", () => {
     expect(bookedSolutionPains(initialSessionGraph)).toEqual([]);
   });
 
-  it("sets and replaces the pilot pick only among the three booked, separate from votes", () => {
+  it("records Go on the booked solution and ignores any other id", () => {
     const booked = bookThree();
-    const [first, second] = booked.hackathon!.solutionIds;
-    expect(pilotPickTitle(booked)).toBeNull();
-    expect(setPilotPick(initialSessionGraph, first)).toBe(initialSessionGraph);
+    const id = booked.hackathon!.solutionIds[0];
+    expect(pilotPickTitle(booked)).toBe(bookedSolutionTitles(booked)[0]);
+    expect(setPilotPick(initialSessionGraph, id)).toBe(initialSessionGraph);
     expect(setPilotPick(booked, "sol-audit-trail")).toBe(booked);
 
-    const picked = setPilotPick(booked, first);
-    expect(picked.outcome.pilotPick).toBe(first);
+    const picked = setPilotPick(booked, id);
+    expect(picked.outcome.pilotPick).toBe(id);
+    expect(picked.outcome.hackathonDecision).toBe("go");
     expect(pilotPickTitle(picked)).toBe(bookedSolutionTitles(booked)[0]);
     expect(picked.votes).toEqual(booked.votes);
     expect(picked.ranking).toEqual(booked.ranking);
-
-    const replaced = setPilotPick(picked, second);
-    expect(replaced.outcome.pilotPick).toBe(second);
-    expect(setPilotPick(replaced, second)).toBe(replaced);
-    expect(castVote(replaced, "dana", first).outcome.pilotPick).toBe(second);
+    expect(setPilotPick(picked, id)).toBe(picked);
+    expect(castVote(picked, "dana", id).outcome.pilotPick).toBe(id);
   });
 
   it("hands off to the pilot spec, business case, and customer stage once picked", () => {
@@ -1345,8 +1342,8 @@ describe("after the calendar hold: showcase and pilot pick", () => {
     expect(pilotScopeLine(booked)).toBeNull();
     expect(customerHomeSummary(booked, "CDW").stage).not.toBe("Pilot scoped");
 
-    const picked = setPilotPick(booked, booked.hackathon!.solutionIds[1]);
-    const title = bookedSolutionTitles(booked)[1];
+    const picked = setPilotPick(booked, booked.hackathon!.solutionIds[0]);
+    const title = bookedSolutionTitles(booked)[0];
     expect(pilotNextStepCopy(picked)).toBe(`Six-week pilot on ${title}`);
     expect(pilotScopeLine(picked)).toBe(`Six-week pilot on ${title}, scoped in the three-day hackathon.`);
     expect(customerHomeSummary(picked, "CDW").stage).toBe("Pilot scoped");
@@ -1373,7 +1370,7 @@ describe("after the calendar hold: showcase and pilot pick", () => {
 });
 
 describe("handoff", () => {
-  const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+  const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
   const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
     date: "2026-10-14",
     googleFacilitator: "Priya Raghavan",
@@ -1687,8 +1684,8 @@ describe("customer persona", () => {
     expect(pilotSpecUseCase({ ...booked, outcome: { ...booked.outcome, useCase: "document" } })).toBe(
       bookedSolutionTitles(booked).join(", "),
     );
-    const picked = setPilotPick(booked, booked.hackathon!.solutionIds[1]);
-    expect(pilotSpecUseCase(picked)).toBe(bookedSolutionTitles(booked)[1]);
+    const picked = setPilotPick(booked, booked.hackathon!.solutionIds[0]);
+    expect(pilotSpecUseCase(picked)).toBe(bookedSolutionTitles(booked)[0]);
     expect(pilotSpecUseCase(picked)).not.toBe("document");
   });
 
@@ -1707,13 +1704,13 @@ describe("customer persona", () => {
       question: "Can we prove the three?",
     });
     expect(showsSampleRunLink("customer", booked)).toBe(true);
-    const other = setPilotPick(booked, booked.hackathon!.solutionIds[1]);
-    expect(sampleRunEntryReady(other)).toBe(false);
-    expect(showsSampleRunLink("customer", other)).toBe(false);
+    const going = setPilotPick(booked, booked.hackathon!.solutionIds[0]);
+    expect(sampleRunEntryReady(going)).toBe(true);
+    expect(showsSampleRunLink("customer", going)).toBe(true);
   });
 });
 
 function selectSample(graph: typeof initialSessionGraph) {
-  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
+  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
   return ids.reduce((current, id) => toggleSelected(current, id), graph);
 }

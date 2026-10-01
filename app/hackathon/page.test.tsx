@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { initialSessionGraph } from "@/lib/seed";
-import { hackathonGuardCopy } from "@/lib/session";
+import { applyDeliveryMode, hackathonGuardCopy, toggleSelected, rankedSolutions } from "@/lib/session";
 
 const useSessionMock = vi.fn();
 
@@ -45,5 +45,14 @@ describe("hackathon guard", () => {
     expect(markup).toContain('href="/scope"');
     expect(markup).not.toContain("Heartland");
     expect(markup).not.toContain("Book the hackathon");
+  });
+
+  it("shows the booking date once the solution is chosen", () => {
+    const ids = rankedSolutions(applyDeliveryMode(initialSessionGraph, "self-service")).map((solution) => solution.id).slice(0, 1);
+    const chosen = ids.reduce((current, id) => toggleSelected(current, id), applyDeliveryMode(initialSessionGraph, "self-service"));
+    const markup = renderFor("customer", chosen);
+    expect(markup).not.toContain(hackathonGuardCopy);
+    expect(markup).toContain("Hackathon date");
+    expect(markup).toContain('type="date"');
   });
 });

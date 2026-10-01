@@ -30,14 +30,14 @@ vi.mock("@/components/session-provider", () => ({
 
 import RankPage from "./page";
 
-function selectThree(graph = initialSessionGraph) {
-  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
+function selectOne(graph = initialSessionGraph) {
+  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
   return ids.reduce((current, id) => toggleSelected(current, id), graph);
 }
 
 const dayLines = ["Start from the pain.", "Try it on your own documents.", "Write down what held."];
 
-function bookThree(graph = selectThree()) {
+function bookOne(graph = selectOne()) {
   return bookHackathon(graph, {
     date: "2026-10-14",
     googleFacilitator: "Priya Raghavan",
@@ -67,7 +67,7 @@ describe("Rank page", () => {
   it("shows the seeded shortlist with a selection count", () => {
     const markup = renderToStaticMarkup(<RankPage />);
     expect(markup).toContain("Shortlist");
-    expect(markup).toContain("0 of 3 selected");
+    expect(markup).toContain("0 of 1 selected");
     expect(markup).toContain("AI-assisted claims intake extraction");
     expect(markup).toContain("Document AI");
     expect(markup).toContain("Booking the hackathon is the next action.");
@@ -76,7 +76,7 @@ describe("Rank page", () => {
   });
 
   it("shows the booking form with three titles when three are selected", () => {
-    const selected = selectThree();
+    const selected = selectOne();
     useSessionMock.mockReturnValue({
       graph: selected,
       viewer: { actor: "partner", name: "Ravi Menon", org: "CDW" },
@@ -90,9 +90,9 @@ describe("Rank page", () => {
     });
 
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("3 of 3 selected");
-    expect(markup).toContain("The partner confirms the three first.");
-    expect(markup).toContain("Confirm the three");
+    expect(markup).toContain("1 of 1 selected");
+    expect(markup).toContain("The partner confirms the choice first.");
+    expect(markup).toContain("Confirm the choice");
     expect(markup).not.toContain('href="/hackathon"');
     expect(markup).not.toContain("Select three solutions first.");
     expect(markup).not.toContain("The partner or customer books the hackathon.");
@@ -100,7 +100,7 @@ describe("Rank page", () => {
     expect(markup).not.toContain("Lock ranking");
 
     const block = markup.slice(markup.indexOf("What the three days will be."), markup.indexOf(">Shortlist</h2>"));
-    const solutions = rankedSolutions(selected).slice(0, 3);
+    const solutions = rankedSolutions(selected).filter((solution) => selected.ranking.selected.includes(solution.id));
     let cursor = 0;
     for (const solution of solutions) {
       const titleAt = block.indexOf(solution.title, cursor);
@@ -122,7 +122,7 @@ describe("Rank page", () => {
   });
 
   it("opens the business case once the hackathon is booked with three titles", () => {
-    const booked = bookHackathon(selectThree(), {
+    const booked = bookHackathon(selectOne(), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
       partnerSpecialist: "Ravi Menon",
@@ -155,7 +155,7 @@ describe("Rank page", () => {
   });
 
   it("shows the three-days section with pain lines and a pilot pick once booked", () => {
-    const booked = bookHackathon(selectThree(), {
+    const booked = bookHackathon(selectOne(), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
       partnerSpecialist: "Ravi Menon",
@@ -198,7 +198,7 @@ describe("Rank page", () => {
     }
     const solutionList = section.slice(0, section.indexOf("What the three days will be."));
     expect(solutionList).not.toContain("Choose");
-    expect(rows.map((row) => section.split(`>${row.title}</p>`).length - 1)).toEqual([1, 1, 1]);
+    expect(rows.map((row) => section.split(`>${row.title}</p>`).length - 1)).toEqual([1]);
     for (const line of dayLines) {
       expect(section.indexOf(line)).toBeGreaterThan(cursor);
     }
@@ -211,12 +211,12 @@ describe("Rank page", () => {
     expect(pdmMarkup).toContain("What the three days produce");
     expect(pdmMarkup).not.toContain("as the pilot");
 
-    useSessionMock.mockReturnValue({ ...session, viewer: { actor: "partner", name: "Ravi Menon", org: "CDW" }, graph: selectThree() });
+    useSessionMock.mockReturnValue({ ...session, viewer: { actor: "partner", name: "Ravi Menon", org: "CDW" }, graph: selectOne() });
     expect(renderToStaticMarkup(<RankPage />)).not.toContain("What the three days produce");
   });
 
   it("keeps the go or no-go off the shortlist", () => {
-    const booked = bookThree();
+    const booked = bookOne();
     useSessionMock.mockReturnValue({
       graph: booked,
       brand: brands.cdw,
@@ -253,13 +253,13 @@ describe("Rank page", () => {
     const markup = renderToStaticMarkup(<RankPage />);
     expect(markup).toContain("Sample shortlist, not this account");
     expect(markup).toContain("Sample figures from the Heartland case, not from Reply.");
-    expect(markup).toContain("You vote. The partner chooses the three solutions.");
+    expect(markup).toContain("You vote. The partner chooses the solution.");
     const cardChunk = markup.slice(markup.indexOf("<ol"), markup.indexOf("</ol>"));
     expect(cardChunk).not.toContain("Reply");
   });
 
   it("keeps book disabled copy when mechanic switch clears selection", () => {
-    const selected = selectThree();
+    const selected = selectOne();
     const ledger = applyMechanic(selected, "ghost-ledger");
     useSessionMock.mockReturnValue({
       graph: ledger,
@@ -274,14 +274,14 @@ describe("Rank page", () => {
     });
 
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("0 of 3 selected");
+    expect(markup).toContain("0 of 1 selected");
     expect(markup).toContain("Booking the hackathon is the next action.");
     expect(markup).not.toContain("Book the three-day hackathon");
     expect(rankedSolutions(ledger)).toHaveLength(3);
   });
 
   it("shows the customer strip with the latest capture and the top 3 in rank order", () => {
-    const selected = selectThree();
+    const selected = selectOne();
     useSessionMock.mockReturnValue({
       graph: selected,
       viewer: { actor: "customer", name: "Dana Reyes", org: "Heartland" },
@@ -295,9 +295,9 @@ describe("Rank page", () => {
     });
 
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("Your top 3 · 3/3");
-    const strip = markup.slice(markup.indexOf("Your top 3"), markup.indexOf('<ol class="mt-5'));
-    const titles = rankedSolutions(selected).slice(0, 3).map((solution) => solution.title);
+    expect(markup).toContain("The solution · 1/1");
+    const strip = markup.slice(markup.indexOf("The solution ·"), markup.indexOf('<ol class="mt-5'));
+    const titles = rankedSolutions(selected).filter((solution) => selected.ranking.selected.includes(solution.id)).map((solution) => solution.title);
     const positions = titles.map((title) => strip.indexOf(title));
     expect(positions.every((position) => position >= 0)).toBe(true);
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
@@ -317,7 +317,7 @@ describe("Rank page", () => {
       unlockRanking: vi.fn(),
       bookHackathon: vi.fn(),
     });
-    expect(renderToStaticMarkup(<RankPage />)).toContain("Your top 3 · 0/3");
+    expect(renderToStaticMarkup(<RankPage />)).toContain("The solution · 0/1");
 
     useSessionMock.mockReturnValue({
       graph: initialSessionGraph,
@@ -330,7 +330,7 @@ describe("Rank page", () => {
       unlockRanking: vi.fn(),
       bookHackathon: vi.fn(),
     });
-    expect(renderToStaticMarkup(<RankPage />)).not.toContain("Your top 3");
+    expect(renderToStaticMarkup(<RankPage />)).not.toContain("The solution ·");
   });
 
   it("shows the PDM reaction line", () => {
@@ -353,7 +353,7 @@ describe("Rank page", () => {
 
   it("keeps the booking form off the PDM page after three are selected", () => {
     useSessionMock.mockReturnValue({
-      graph: selectThree(),
+      graph: selectOne(),
       viewer: { actor: "pdm", name: "Priya Raghavan", org: "Google" },
       canEditSession: true,
       moveSolution: vi.fn(),
@@ -374,7 +374,7 @@ describe("Rank page", () => {
   });
 
   it("offers Try it as the primary action once the extraction solution is locked, then swaps after a run", () => {
-    const locked = lockRanking(selectThree());
+    const locked = lockRanking(selectOne());
     useSessionMock.mockReturnValue({
       graph: locked,
       viewer: { actor: "partner", name: "Ravi Menon", org: "CDW" },
@@ -405,7 +405,7 @@ describe("Rank page", () => {
 
   it("hides the try card until the ranking is locked, and when rank 1 is not extraction", () => {
     useSessionMock.mockReturnValue({
-      graph: selectThree(),
+      graph: selectOne(),
       viewer: { actor: "partner", name: "Ravi Menon", org: "CDW" },
       canEditSession: true,
       moveSolution: vi.fn(),
@@ -417,7 +417,7 @@ describe("Rank page", () => {
     expect(renderToStaticMarkup(<RankPage />)).not.toContain("data-try-card");
 
     const moved = moveSolution(initialSessionGraph, rankedSolutions(initialSessionGraph)[0].id, "down");
-    const other = lockRanking(selectThree(moved));
+    const other = lockRanking(selectOne(moved));
     useSessionMock.mockReturnValue({
       graph: other,
       viewer: { actor: "partner", name: "Ravi Menon", org: "CDW" },
@@ -458,7 +458,7 @@ describe("Rank page", () => {
     for (const actor of ["partner", "customer"] as const) {
       const markup = show(actor);
       expect(markup).toContain("2 votes · Michelle Dorsey, Robert Osei");
-      expect(markup).not.toContain("0 votes");
+      expect(markup).toContain("0 votes");
       expect(markup).toContain("2 quotes · Michelle Dorsey, Dana Reyes");
       expect(markup).toContain("3 quotes · Michelle Dorsey, Robert Osei, Alex Chen");
       expect(markup).not.toContain("No evidence yet.");
@@ -511,7 +511,7 @@ describe("Rank page", () => {
     expect(search).not.toContain("#4285F4");
   });
 
-  it("omits empty vote and evidence lines, including a cold account with no captures", () => {
+  it("shows a zero vote count and omits empty evidence, including a cold account with no captures", () => {
     useSessionMock.mockReturnValue({
       graph: initialSessionGraph,
       viewer: { actor: "partner", name: "Ravi Menon", org: "CDW" },
@@ -524,7 +524,7 @@ describe("Rank page", () => {
     });
     const seeded = renderToStaticMarkup(<RankPage />);
     expect(seeded).toContain("2 quotes · Michelle Dorsey, Dana Reyes");
-    expect(seeded).not.toContain("0 votes");
+    expect(seeded).toContain("0 votes");
 
     const cold = applyColdScope(
       initialSessionGraph,
@@ -542,7 +542,7 @@ describe("Rank page", () => {
       unlockRanking: vi.fn(),
     });
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).not.toContain("0 votes");
+    expect(markup).toContain("0 votes");
     expect(markup).not.toContain("No evidence yet.");
     expect(markup).not.toContain("quotes ·");
   });

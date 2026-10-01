@@ -32,10 +32,18 @@ const productIcons: Record<string, typeof File> = {
   "Cloud Logging": ScrollText,
 };
 
+function votersFor(graph: ReturnType<typeof useSession>["graph"], solutionId: string) {
+  return graph.attendees.filter((person) => graph.votes[person.id] === solutionId);
+}
+
+function voteCountLabel(count: number) {
+  return count === 1 ? "1 vote" : `${count} votes`;
+}
+
 function voteLine(graph: ReturnType<typeof useSession>["graph"], solutionId: string) {
-  const voters = graph.attendees.filter((person) => graph.votes[person.id] === solutionId);
+  const voters = votersFor(graph, solutionId);
   if (!voters.length) return null;
-  return `${voters.length} votes · ${voters.map((person) => person.name).join(", ")}`;
+  return `${voteCountLabel(voters.length)} · ${voters.map((person) => person.name).join(", ")}`;
 }
 
 function evidenceLine(graph: ReturnType<typeof useSession>["graph"], stepId: string | undefined) {
@@ -84,7 +92,7 @@ export default function RankPage() {
   const locked = graph.ranking.locked;
   const booked = Boolean(graph.hackathon?.booked);
   const coldSample = graph.session.scopeMode === "cold";
-  const canSelectMore = selectedCount < 3;
+  const canSelectMore = selectedCount < 1;
   const canSelect = canChooseShortlist(viewer.actor, graph);
   const canConfirm = canConfirmShortlist(viewer.actor, graph);
   const canUnconfirm = canUnconfirmShortlist(viewer.actor, graph);
@@ -109,7 +117,7 @@ export default function RankPage() {
               {coldSample ? "Sample shortlist, not this account's case" : "Shortlist"}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-black/58">
-              Choose three. The hackathon covers the three solutions.
+              Choose one. The hackathon covers the solution.
               {mayBook ? " Booking the hackathon is the next action." : " The partner books the hackathon."}
               {coldSample && (
                 <span className="mt-1 block text-xs text-amber-900">
@@ -149,7 +157,7 @@ export default function RankPage() {
         )}
 
         {booked && <HackathonThreeDays graph={graph} className="mt-8" />}
-        {!booked && selectedCount === 3 && (
+        {!booked && selectedCount === 1 && (
           <WhatTheThreeDaysWillBe
             solutions={selected}
             className="mt-8 rounded-sm border border-black/10 bg-white p-6"
@@ -160,7 +168,7 @@ export default function RankPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold">Shortlist</h2>
-              <p className="mt-1 text-sm text-black/55">{selectedCount} of 3 selected</p>
+              <p className="mt-1 text-sm text-black/55">{selectedCount} of 1 selected</p>
             </div>
             {(canConfirm || canUnconfirm) && (
               locked ? (
@@ -174,20 +182,20 @@ export default function RankPage() {
                   onClick={lockRanking}
                   className="bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]"
                 >
-                  Confirm the three
+                  Confirm the choice
                 </Button>
               )
             )}
           </div>
-          {selectedCount !== 3 && !booked && (
-            <p className="mt-3 text-xs text-black/48">Choose three.</p>
+          {selectedCount !== 1 && !booked && (
+            <p className="mt-3 text-xs text-black/48">Choose one.</p>
           )}
 
           {isCustomerViewer(viewer.actor) && graph.session.delivery !== "self-service" && (
-            <p className="mt-4 text-sm text-black/58">You vote. The partner chooses the three solutions.</p>
+            <p className="mt-4 text-sm text-black/58">You vote. The partner chooses the solution.</p>
           )}
           {isCustomerViewer(viewer.actor) && graph.session.delivery === "self-service" && (
-            <p className="mt-4 text-sm text-black/58">Choose three. The hackathon covers the three solutions.</p>
+            <p className="mt-4 text-sm text-black/58">Choose one. The hackathon covers the solution.</p>
           )}
 
           {customerViewer && (
@@ -198,7 +206,7 @@ export default function RankPage() {
                 </blockquote>
               )}
               <div className="rounded-sm border border-black/15 bg-[#fafaf8] px-4 py-3 text-sm" role="status">
-                <p className="font-semibold text-black">Your top 3 · {topThreeTitles.length}/3</p>
+                <p className="font-semibold text-black">The solution · {topThreeTitles.length}/1</p>
                 {topThreeTitles.length > 0 && (
                   <ol className="mt-1 list-decimal space-y-0.5 pl-5 text-black/80">
                     {topThreeTitles.map((title) => <li key={title}>{title}</li>)}
@@ -212,6 +220,7 @@ export default function RankPage() {
             {ordered.map((solution, index) => {
               const isSelected = graph.ranking.selected.includes(solution.id);
               const blockedAdd = !isSelected && !canSelectMore && !locked && !booked;
+              const voteCount = votersFor(graph, solution.id).length;
               const votes = voteLine(graph, solution.id);
               const evidence = evidenceLine(graph, solution.stepId);
               return (
@@ -272,10 +281,11 @@ export default function RankPage() {
                       </div>
                     )}
                     {blockedAdd && (
-                      <p className="mt-2 text-xs text-black/48">Three already selected</p>
+                      <p className="mt-2 text-xs text-black/48">One already selected</p>
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-2">
+                    <p className="text-sm font-medium text-black/70">{voteCountLabel(voteCount)}</p>
                     {canSelect && !locked && !booked && (
                       <Button
                         type="button"

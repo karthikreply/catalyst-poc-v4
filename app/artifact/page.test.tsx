@@ -17,7 +17,7 @@ import {
 } from "@/lib/session";
 
 function selectThree(graph = initialSessionGraph) {
-  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
+  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
   return ids.reduce((current, id) => toggleSelected(current, id), graph);
 }
 
@@ -297,7 +297,7 @@ describe("the three days, on the booked business case", () => {
     expect(markup).not.toContain("Pilot not yet chosen");
     expect(markup).not.toContain("Choose on the business case");
     const rows = bookedSolutionPains(graph);
-    expect(rows).toHaveLength(3);
+    expect(rows).toHaveLength(1);
     for (const row of rows) {
       expect(markup).toContain(row.title);
     }
@@ -310,9 +310,9 @@ describe("the three days, on the booked business case", () => {
   });
 
   it("names the picked title as the next step, and is unchanged without a pick", () => {
-    const title = bookedSolutionPains(bookedHeartland)[1].title;
+    const title = bookedSolutionPains(bookedHeartland)[0].title;
     expect(render(bookedHeartland, partner)).not.toContain(`Six-week pilot on ${title}`);
-    const picked = setPilotPick(bookedHeartland, bookedHeartland.hackathon!.solutionIds[1]);
+    const picked = setPilotPick(bookedHeartland, bookedHeartland.hackathon!.solutionIds[0]);
     const markup = render(picked, partner);
     expect(markup).toContain(`Six-week pilot on ${title}`);
     expect(markup).toContain("Start DAF funding request");
