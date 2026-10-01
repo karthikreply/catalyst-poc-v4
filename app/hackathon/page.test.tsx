@@ -56,3 +56,34 @@ describe("hackathon guard", () => {
     expect(markup).toContain('type="date"');
   });
 });
+
+describe("hackathon solutions", () => {
+  const selfService = applyDeliveryMode(initialSessionGraph, "self-service");
+  const ids = rankedSolutions(selfService).map((solution) => solution.id);
+  const titleOf = (id: string) => initialSessionGraph.solutions.find((solution) => solution.id === id)!.title;
+
+  it("lists only the chosen solutions, not the whole catalog", () => {
+    const chosen = ids.slice(0, 3).reduce((current, id) => toggleSelected(current, id), selfService);
+    const markup = renderFor("customer", chosen);
+    for (const id of ids.slice(0, 3)) expect(markup).toContain(titleOf(id));
+    const others = initialSessionGraph.solutions.filter((solution) => !ids.slice(0, 3).includes(solution.id));
+    expect(others.length).toBeGreaterThan(0);
+    for (const solution of others) expect(markup).not.toContain(solution.title);
+  });
+
+  it("opens the calendar in a new tab and links on to the business case once booked", async () => {
+    const { bookHackathon } = await import("@/lib/session");
+    const chosen = ids.slice(0, 3).reduce((current, id) => toggleSelected(current, id), selfService);
+    const booked = bookHackathon(chosen, {
+      date: "2026-10-14",
+      googleFacilitator: "Priya Raghavan",
+      partnerSpecialist: "Ravi Menon",
+      customerOwner: "Dana Reyes",
+      question: "Can we prove extraction?",
+    });
+    const markup = renderFor("customer", booked);
+    expect(markup).toMatch(/<a href="https:\/\/calendar\.google\.com[^"]*" target="_blank" rel="noopener noreferrer"/);
+    expect(markup).toContain("Next: the business case");
+    expect(markup).toContain('href="/artifact"');
+  });
+});

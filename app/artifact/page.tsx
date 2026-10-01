@@ -169,8 +169,10 @@ export default function ArtifactPage() {
 
       {graph.hackathon?.booked ? (
         <div className="mx-auto mt-5 max-w-4xl rounded-sm border border-black/20 bg-white px-4 py-4 text-sm text-black" role="status">
-          <p className="text-base font-semibold text-black">Hackathon booked · {graph.hackathon.date}</p>
+          <p className="text-xs font-medium text-black/50">From the hackathon</p>
+          <p className="mt-1 text-base font-semibold text-black">Hackathon booked · {graph.hackathon.date}</p>
           <p className="mt-2 leading-6 text-black/85">{bookedTitles.length ? bookedTitles.join(" · ") : "The three solutions"}</p>
+          <p className="mt-2 leading-6 text-black/70">This case takes the session evidence and these solutions to the funding ask.</p>
           <Link href="/hackathon" className="mt-3 inline-block text-sm underline underline-offset-2">Open the hackathon</Link>
         </div>
       ) : !selfService && viewer.actor === "partner" && graph.ranking.selected.length !== 3 ? (

@@ -20,7 +20,6 @@ import {
   pilotPickTitle,
   selectedSolutions,
   sessionReachedShortlist,
-  shortlistSolutions,
 } from "@/lib/session";
 
 function hackathonStateLabel(graph: ReturnType<typeof useSession>["graph"]) {
@@ -77,7 +76,7 @@ export default function HackathonPage() {
         const solution = catalogSolutionById(id, graph);
         return solution ? [solution] : [];
       })
-    : shortlistSolutions(graph);
+    : selectedSolutions(graph);
   const mayRecord = canRecordHackathonDecision(viewer.actor, graph);
   const mayChoose = canChooseShortlist(viewer.actor, graph);
   const reason = bookBlockReason(viewer.actor, graph);
@@ -125,7 +124,7 @@ export default function HackathonPage() {
           <section className="mt-6 rounded-sm border border-black/10 bg-white p-6" aria-label="The three solutions">
             <h2 className="text-lg font-semibold">{booked ? "The three solutions" : "Rank"}</h2>
             {solutions.length === 0 ? (
-              <p className="mt-2 text-sm text-black/70">Choose three.</p>
+              <p className="mt-2 text-sm text-black/70">Choose three on <Link href="/rank" className="underline underline-offset-2">Rank</Link>.</p>
             ) : (
               <ul className="mt-4 divide-y divide-black/10 border-y border-black/10">
                 {solutions.map((solution) => (
@@ -142,6 +141,9 @@ export default function HackathonPage() {
                   </li>
                 ))}
               </ul>
+            )}
+            {!booked && solutions.length > 0 && solutions.length < 3 && (
+              <p className="mt-3 text-sm text-black/70">{solutions.length} of 3 chosen. Choose the rest on <Link href="/rank" className="underline underline-offset-2">Rank</Link>.</p>
             )}
             {booked && <p className="mt-4 text-sm font-semibold">Date · {graph.hackathon?.date}</p>}
             <h3 id="hackathon-day-shape" className="mt-5 text-base font-semibold">What the three days will be.</h3>
@@ -164,7 +166,7 @@ export default function HackathonPage() {
         {booked && !pdm && (
           <div className="mt-5 flex flex-wrap gap-3">
             {calendarUrl && (
-              <a href={calendarUrl} className={buttonVariants({ className: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" })}>
+              <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ className: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" })}>
                 {customer ? "Open calendar" : "Add to Google Calendar"}
               </a>
             )}
@@ -214,6 +216,18 @@ export default function HackathonPage() {
 
         {booked && !mayRecord && !pdm && (
           <p className="mt-5 text-sm" role="status">Pilot status · {pilotStatus(graph)}</p>
+        )}
+
+        {booked && (
+          <section className="mt-6 rounded-sm border border-black/10 bg-white p-6" aria-label="Next step">
+            <h2 className="text-lg font-semibold">Next: the business case</h2>
+            <p className="mt-1 text-sm leading-6 text-black/62">
+              The business case carries the session evidence, these three solutions, and the hackathon date into the funding ask.
+            </p>
+            <Link href="/artifact" className={`${buttonVariants()} mt-4 bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]`}>
+              Open the business case
+            </Link>
+          </section>
         )}
       </div>
     </div>
