@@ -275,6 +275,7 @@ describe("Rank page", () => {
 
     const markup = renderToStaticMarkup(<RankPage />);
     expect(markup).toContain("0 of 3 selected");
+    expect(markup).toContain(">Select<");
     expect(markup).toContain("Booking the hackathon is the next action.");
     expect(markup).not.toContain("Book the three-day hackathon");
     expect(rankedSolutions(ledger)).toHaveLength(3);

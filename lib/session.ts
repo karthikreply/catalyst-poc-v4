@@ -807,12 +807,13 @@ export function bookBlockReason(actor: Actor, graph: SessionGraph): string | nul
   return null;
 }
 
-/** Partner chooses on a facilitated session. The customer chooses on self-service. The PDM does not. */
+/** The partner chooses on any session. The customer also chooses on self-service. The PDM does not. */
 export function canChooseShortlist(actor: Actor, graph: SessionGraph) {
   if (graph.ranking.locked || graph.hackathon?.booked) return false;
   if (actor === "pdm") return false;
+  if (actor === "partner") return true;
   if (graph.session.delivery === "self-service") return isCustomerViewer(actor);
-  return actor === "partner";
+  return false;
 }
 
 export function canConfirmShortlist(actor: Actor, graph: SessionGraph) {
@@ -824,8 +825,9 @@ export function canConfirmShortlist(actor: Actor, graph: SessionGraph) {
 
 export function canUnconfirmShortlist(actor: Actor, graph: SessionGraph) {
   if (!graph.ranking.locked || graph.hackathon?.booked) return false;
+  if (actor === "partner") return true;
   if (graph.session.delivery === "self-service") return isCustomerViewer(actor);
-  return actor === "partner";
+  return false;
 }
 
 /** Partner records the decision. On self-service the customer does. The PDM sees it. */

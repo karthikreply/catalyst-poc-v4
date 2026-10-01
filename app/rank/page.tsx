@@ -190,15 +190,9 @@ export default function RankPage() {
           {selectedCount !== 3 && !booked && (
             <p className="mt-3 text-xs text-black/48">Choose three.</p>
           )}
-          {viewer.actor === "partner" && !canSelect && (
+          {viewer.actor === "partner" && !canSelect && (booked || locked) && (
             <p className="mt-3 text-sm text-black/62" role="status">
-              {booked
-                ? "Booked. The three solutions are fixed."
-                : locked
-                  ? graph.session.delivery === "self-service"
-                    ? "The customer confirmed the three."
-                    : "Confirmed. Unconfirm to change the three."
-                  : "Self-service session. The customer chooses the three."}
+              {booked ? "Booked. The three solutions are fixed." : "Confirmed. Unconfirm to change the three."}
             </p>
           )}
 

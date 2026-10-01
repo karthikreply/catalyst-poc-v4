@@ -183,8 +183,8 @@ export default function ScopePage() {
         </div>
 
         <div className="mt-6">
-          <Link href="/run" className={cn(buttonVariants({ className: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" }))}>
-            Open the session <ArrowRight />
+          <Link href="/plan" className={cn(buttonVariants({ className: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" }))}>
+            Plan the session <ArrowRight />
           </Link>
         </div>
       </div>

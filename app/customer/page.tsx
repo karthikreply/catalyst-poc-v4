@@ -77,7 +77,7 @@ export default function CustomerHomePage() {
             {sampleRunLabel && <SummaryItem term="Sample run" detail={sampleRunLabel} href={sampleRunHref} />}
           </dl>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/run" className="md-button-filled">
+            <Link href="/scope" className="md-button-filled">
               Open the session <ArrowRight className="size-4" />
             </Link>
             <Link href="/funding" className="md-button-outlined">View funding pack</Link>

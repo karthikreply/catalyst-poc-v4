@@ -181,7 +181,9 @@ describe("customer door Scope", () => {
     expect(markup).toContain("Heartland Mutual Insurance");
     expect(markup).toContain("Known pain");
     expect(markup).toContain("Intake sits six days, mostly manual PDF reading.");
-    expect(markup).toContain('href="/run"');
+    expect(markup).toContain('href="/plan"');
+    expect(markup).toContain("Plan the session");
+    expect(markup).not.toContain('href="/run"');
     expect(markup).not.toContain("Look up your account");
     expect(markup).not.toContain("Customer entry");
     expect(markup).not.toContain("Company name");

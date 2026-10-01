@@ -54,7 +54,8 @@ describe("customer home", () => {
     expect(markup).toContain("Heartland Mutual Insurance");
     expect(markup).toContain("Constraints");
     expect(markup).toContain("Not yet handed off");
-    expect(markup).toContain('href="/run"');
+    expect(markup).toContain('href="/scope"');
+    expect(markup).not.toContain('href="/run"');
     expect(markup).not.toContain("How do you want to start?");
     expect(markup).not.toContain("Prioritize my use cases");
     expect(markup).not.toContain("Show me the cost of waiting");
