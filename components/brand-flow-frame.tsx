@@ -17,7 +17,7 @@ const sessionSteps = [
   { href: "/scope", label: "Scope" },
   { href: "/plan", label: "Plan" },
   { href: "/run", label: "Run" },
-  { href: "/rank", label: "Shortlist" },
+  { href: "/rank", label: "Rank" },
   { href: "/hackathon", label: "Hackathon" },
   { href: "/artifact", label: "Business case" },
   { href: "/pilot-spec", label: "Pilot" },
@@ -31,7 +31,7 @@ export function BrandFlowFrame({ children }: { children: React.ReactNode }) {
   const hackathonFocus = graph.session.focus === "hackathon";
   const steps = hackathonFocus ? sessionSteps.slice(3) : sessionSteps;
   const activeIndex = tryIt ? -1 : Math.max(0, steps.findIndex((step) => pathname.startsWith(step.href)));
-  const nextStep = activeIndex < 0 ? { href: "/rank", label: "Shortlist" } : steps[(activeIndex + 1) % steps.length];
+  const nextStep = activeIndex < 0 ? { href: "/rank", label: "Rank" } : steps[(activeIndex + 1) % steps.length];
   const [brandPickerOpen, setBrandPickerOpen] = useState(false);
   const sessionHeader = mergesSessionHeader(pathname);
   const customer = isCustomerViewer(viewer.actor);

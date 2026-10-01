@@ -59,6 +59,6 @@ describe("customer chrome", () => {
     expect(markup).toContain("Facilitated by");
     expect(markup).toContain("Heartland Mutual Insurance · value session");
     expect(markup).toContain(">Format<");
-    expect(markup).toContain("Next: Shortlist");
+    expect(markup).toContain("Next: Rank");
   });
 });

@@ -57,7 +57,7 @@ function YourHackathon({ graph }: { graph: SessionGraph }) {
   return (
     <section className="rounded-sm border border-black/10 bg-white p-6" aria-labelledby="your-hackathon">
       <h2 id="your-hackathon" className="text-lg font-semibold">Hackathon booked · {booking.date}</h2>
-      <p className="mt-2 text-sm leading-6">{titles.length ? titles.join(" · ") : "The solution"}</p>
+      <p className="mt-2 text-sm leading-6">{titles.length ? titles.join(" · ") : "The three solutions"}</p>
       <p className="mt-3 text-sm">
         <Link href="/hackathon" className="underline underline-offset-2">Open the hackathon</Link>
       </p>

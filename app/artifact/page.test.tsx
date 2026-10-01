@@ -17,7 +17,7 @@ import {
 } from "@/lib/session";
 
 function selectThree(graph = initialSessionGraph) {
-  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
+  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
   return ids.reduce((current, id) => toggleSelected(current, id), graph);
 }
 
@@ -297,7 +297,7 @@ describe("the three days, on the booked business case", () => {
     expect(markup).not.toContain("Pilot not yet chosen");
     expect(markup).not.toContain("Choose on the business case");
     const rows = bookedSolutionPains(graph);
-    expect(rows).toHaveLength(1);
+    expect(rows).toHaveLength(3);
     for (const row of rows) {
       expect(markup).toContain(row.title);
     }

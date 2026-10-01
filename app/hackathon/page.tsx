@@ -25,7 +25,7 @@ import {
 
 function hackathonStateLabel(graph: ReturnType<typeof useSession>["graph"]) {
   if (graph.hackathon?.booked) return "Booked";
-  if (graph.ranking.locked && graph.ranking.selected.length === 1) return "Book";
+  if (graph.ranking.locked && graph.ranking.selected.length === 3) return "Book";
   return "Choose";
 }
 
@@ -91,10 +91,10 @@ export default function HackathonPage() {
         <p className="text-sm font-semibold text-black/55">{state}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">{customer ? "Your hackathon" : "Hackathon"}</h1>
         {customer && graph.session.delivery !== "self-service" && !booked && (
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/70">You vote. The partner chooses the solution.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/70">You vote. The partner chooses the three solutions.</p>
         )}
         {customer && graph.session.delivery === "self-service" && !booked && (
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/70">Choose one. You book the hackathon.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/70">Choose three. You book the hackathon.</p>
         )}
 
         {pdm && (
@@ -102,7 +102,7 @@ export default function HackathonPage() {
             <h2 className="text-lg font-semibold">Readout</h2>
             <dl className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
-                <dt className="text-xs font-medium text-black/45">The solution</dt>
+                <dt className="text-xs font-medium text-black/45">The three solutions</dt>
                 <dd className="mt-1 text-sm">{titles.length ? titles.join(", ") : "Not chosen"}</dd>
               </div>
               <div>
@@ -122,10 +122,10 @@ export default function HackathonPage() {
         )}
 
         {!pdm && (
-          <section className="mt-6 rounded-sm border border-black/10 bg-white p-6" aria-label="The solution">
-            <h2 className="text-lg font-semibold">{booked ? "The solution" : "Shortlist"}</h2>
+          <section className="mt-6 rounded-sm border border-black/10 bg-white p-6" aria-label="The three solutions">
+            <h2 className="text-lg font-semibold">{booked ? "The three solutions" : "Rank"}</h2>
             {solutions.length === 0 ? (
-              <p className="mt-2 text-sm text-black/70">Choose one.</p>
+              <p className="mt-2 text-sm text-black/70">Choose three.</p>
             ) : (
               <ul className="mt-4 divide-y divide-black/10 border-y border-black/10">
                 {solutions.map((solution) => (
@@ -179,22 +179,27 @@ export default function HackathonPage() {
         {booked && mayRecord && (
           <section className="mt-6 rounded-sm border border-black/10 bg-white p-6" aria-label="Go or no-go">
             <h2 className="text-lg font-semibold">Go or no-go</h2>
-            <p className="mt-1 text-sm text-black/62">Record Go on the solution, or not going ahead.</p>
-            {solutions[0] && (
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <span className="text-sm font-semibold">{solutions[0].title}</span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={graph.outcome.hackathonDecision === "go" ? "default" : "outline"}
-                  aria-pressed={graph.outcome.hackathonDecision === "go"}
-                  onClick={() => setPilotPick(solutions[0].id)}
-                  className={graph.outcome.hackathonDecision === "go" ? "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" : undefined}
-                >
-                  Go
-                </Button>
-              </div>
-            )}
+            <p className="mt-1 text-sm text-black/62">Record Go on one of the three solutions, or not going ahead.</p>
+            <ul className="mt-4 space-y-2">
+              {solutions.map((solution) => {
+                const going = graph.outcome.hackathonDecision === "go" && graph.outcome.pilotPick === solution.id;
+                return (
+                  <li key={solution.id} className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm font-semibold">{solution.title}</span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={going ? "default" : "outline"}
+                      aria-pressed={going}
+                      onClick={() => setPilotPick(solution.id)}
+                      className={going ? "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" : undefined}
+                    >
+                      Go
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
             <Button type="button" variant="outline" className="mt-4" onClick={recordNotGoingAhead}>
               Not going ahead
             </Button>

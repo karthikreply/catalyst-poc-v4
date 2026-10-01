@@ -247,7 +247,7 @@ describe("SessionProvider action permissions", () => {
   });
 
   describe("pilot pick", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
@@ -268,7 +268,7 @@ describe("SessionProvider action permissions", () => {
       expect(screen.getByLabelText("pilot-pick")).toHaveTextContent(ids[0]);
 
       fireEvent.click(screen.getByRole("button", { name: "Pick second" }));
-      expect(screen.getByLabelText("pilot-pick")).toHaveTextContent(ids[0]);
+      expect(screen.getByLabelText("pilot-pick")).toHaveTextContent(ids[1]);
     });
 
     it("does not let the PDM set the pilot pick", async () => {

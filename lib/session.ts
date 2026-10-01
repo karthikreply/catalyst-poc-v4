@@ -245,14 +245,14 @@ export function hydrateSessionGraph(value: SessionGraph | null): SessionGraph {
     ranking: value.ranking?.order?.length
       ? {
           order: value.ranking.order,
-          selected: Array.isArray(value.ranking.selected) ? value.ranking.selected.slice(0, 1) : [],
+          selected: Array.isArray(value.ranking.selected) ? value.ranking.selected : [],
           locked: Boolean(value.ranking.locked),
         }
       : initialSessionGraph.ranking,
     hackathon: value.hackathon
       ? {
           ...value.hackathon,
-          solutionIds: Array.isArray(value.hackathon.solutionIds) ? value.hackathon.solutionIds.slice(0, 1) : [],
+          solutionIds: Array.isArray(value.hackathon.solutionIds) ? value.hackathon.solutionIds : [],
           showcaseAt: value.hackathon.showcaseAt?.trim() || defaultShowcaseAt(value.hackathon.date ?? ""),
           calendarAdded: Boolean(value.hackathon.calendarAdded),
           meetAdded: Boolean(value.hackathon.meetAdded),
@@ -787,7 +787,7 @@ export const hackathonGuardCopy = "A hackathon follows a value session. Run one 
 /** The run is finished, or the solution is already chosen. Never substitutes the Heartland record. */
 export function sessionReachedShortlist(graph: SessionGraph) {
   const runFinished = graph.agenda.length > 0 && graph.agenda.every((step) => step.state === "done");
-  return runFinished || graph.ranking.selected.length === 1 || Boolean(graph.hackathon?.booked);
+  return runFinished || graph.ranking.selected.length === 3 || Boolean(graph.hackathon?.booked);
 }
 
 /** Earliest step that is still open. Used only by the hackathon guard. */
@@ -802,8 +802,8 @@ export function earliestIncompleteStep(graph: SessionGraph): { href: string; lab
 /** Why booking is unavailable, or null when the viewer may open the booking form. */
 export function bookBlockReason(actor: Actor, graph: SessionGraph): string | null {
   if (actor === "pdm" || !canBookHackathon(actor)) return "The partner or customer books the hackathon.";
-  if (graph.ranking.selected.length !== 1) return "Choose one first.";
-  if (graph.session.delivery !== "self-service" && !graph.ranking.locked) return "The partner confirms the choice first.";
+  if (graph.ranking.selected.length !== 3) return "Choose three first.";
+  if (graph.session.delivery !== "self-service" && !graph.ranking.locked) return "The partner confirms the three first.";
   return null;
 }
 
@@ -817,7 +817,7 @@ export function canChooseShortlist(actor: Actor, graph: SessionGraph) {
 
 export function canConfirmShortlist(actor: Actor, graph: SessionGraph) {
   if (graph.hackathon?.booked || graph.ranking.locked) return false;
-  if (graph.ranking.selected.length !== 1) return false;
+  if (graph.ranking.selected.length !== 3) return false;
   if (graph.session.delivery === "self-service") return false;
   return actor === "partner";
 }
@@ -1195,20 +1195,23 @@ export function bookedSolutionPains(graph: SessionGraph): BookedSolutionPain[] {
   });
 }
 
-/** Pilot spec use case: the booked solution, else not captured. Never the raw outcome fragment. */
+/** Pilot spec use case: the picked title, else the booked titles, else not captured. Never the raw outcome fragment. */
 export function pilotSpecUseCase(graph: SessionGraph): string {
-  return pilotPickTitle(graph) ?? "Not captured yet";
+  const picked = pilotPickTitle(graph);
+  if (picked) return picked;
+  const titles = bookedSolutionTitles(graph);
+  if (titles.length) return titles.join(", ");
+  return "Not captured yet";
 }
 
-/** Title of the booked solution. Null until the hackathon is booked. */
+/** Title of the solution named as the six-week pilot. Null until Go is recorded. */
 export function pilotPickTitle(graph: SessionGraph): string | null {
-  if (!graph.hackathon?.booked) return null;
-  const id = graph.hackathon.solutionIds[0];
-  if (!id) return null;
-  return catalogSolutionById(id, graph)?.title ?? null;
+  const pick = graph.outcome.pilotPick;
+  if (!pick || !graph.hackathon?.booked || !graph.hackathon.solutionIds.includes(pick)) return null;
+  return catalogSolutionById(pick, graph)?.title ?? null;
 }
 
-/** Go on the booked solution. */
+/** Go on one of the three booked solutions. */
 export function setPilotPick(graph: SessionGraph, solutionId: string): SessionGraph {
   if (!graph.hackathon?.booked || !graph.hackathon.solutionIds.includes(solutionId)) return graph;
   if (graph.session.pilotSigned) return graph;
@@ -1344,7 +1347,7 @@ export function toggleSelected(graph: SessionGraph, solutionId: string): Session
       },
     });
   }
-  if (selected.length >= 1) return graph;
+  if (selected.length >= 3) return graph;
   const nextSelected = [...selected, solutionId];
   const next = releaseStaleSampleRun({
     ...graph,
@@ -1353,7 +1356,7 @@ export function toggleSelected(graph: SessionGraph, solutionId: string): Session
       selected: nextSelected,
     },
   });
-  if (nextSelected.length === 1 && graph.session.delivery === "self-service") return lockRanking(next);
+  if (nextSelected.length === 3 && graph.session.delivery === "self-service") return lockRanking(next);
   return next;
 }
 
@@ -1457,7 +1460,7 @@ export function moveSolution(graph: SessionGraph, solutionId: string, direction:
 }
 
 export function lockRanking(graph: SessionGraph): SessionGraph {
-  if (graph.ranking.selected.length !== 1) return graph;
+  if (graph.ranking.selected.length !== 3) return graph;
   if (graph.ranking.order.length === 0) return graph;
   return {
     ...graph,
@@ -1644,9 +1647,9 @@ export function defaultHackathonDraft(graph: SessionGraph): HackathonBooking {
     googleFacilitator,
     partnerSpecialist,
     customerOwner,
-    question: titles.length === 1
-      ? `Can we prove ${titles[0]} on Heartland's own forms in three days?`
-      : "Can we prove the selected solution on Heartland's own forms in three days?",
+    question: titles.length === 3
+      ? `Can we prove ${titles.join("; ")} on Heartland's own forms in three days?`
+      : "Can we prove the three selected solutions on Heartland's own forms in three days?",
     showcaseAt: "",
     booked: false,
     solutionIds: [],
@@ -1659,7 +1662,7 @@ export function defaultHackathonDraft(graph: SessionGraph): HackathonBooking {
 export type HackathonDraft = Omit<HackathonBooking, "booked" | "solutionIds" | "calendarAdded" | "meetAdded">;
 
 export function bookHackathon(graph: SessionGraph, draft: HackathonDraft): SessionGraph {
-  if (graph.ranking.selected.length !== 1) return graph;
+  if (graph.ranking.selected.length !== 3) return graph;
   const date = draft.date.trim();
   const googleFacilitator = draft.googleFacilitator.trim();
   const partnerSpecialist = draft.partnerSpecialist.trim();
@@ -1667,7 +1670,7 @@ export function bookHackathon(graph: SessionGraph, draft: HackathonDraft): Sessi
   const question = draft.question.trim();
   if (!date || !googleFacilitator || !partnerSpecialist || !customerOwner || !question) return graph;
   const solutionIds = graph.ranking.order.filter((id) => graph.ranking.selected.includes(id));
-  if (solutionIds.length !== 1) return graph;
+  if (solutionIds.length !== 3) return graph;
   const showcaseAt = draft.showcaseAt?.trim() || defaultShowcaseAt(date);
   return {
     ...graph,

@@ -31,7 +31,7 @@ const flowLabels: Record<string, string> = {
   "/scope": "Scope",
   "/plan": "Plan",
   "/run": "Run",
-  "/rank": "Shortlist",
+  "/rank": "Rank",
   "/hackathon": "Hackathon",
   "/try": "Try it",
   "/artifact": "Business case",

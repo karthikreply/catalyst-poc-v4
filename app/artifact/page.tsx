@@ -170,10 +170,10 @@ export default function ArtifactPage() {
       {graph.hackathon?.booked ? (
         <div className="mx-auto mt-5 max-w-4xl rounded-sm border border-black/20 bg-white px-4 py-4 text-sm text-black" role="status">
           <p className="text-base font-semibold text-black">Hackathon booked · {graph.hackathon.date}</p>
-          <p className="mt-2 leading-6 text-black/85">{bookedTitles.length ? bookedTitles.join(" · ") : "The solution"}</p>
+          <p className="mt-2 leading-6 text-black/85">{bookedTitles.length ? bookedTitles.join(" · ") : "The three solutions"}</p>
           <Link href="/hackathon" className="mt-3 inline-block text-sm underline underline-offset-2">Open the hackathon</Link>
         </div>
-      ) : !selfService && viewer.actor === "partner" && graph.ranking.selected.length !== 1 ? (
+      ) : !selfService && viewer.actor === "partner" && graph.ranking.selected.length !== 3 ? (
         <div className="mx-auto mt-5 flex max-w-4xl flex-wrap items-center justify-between gap-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           <p>No hackathon booked yet. Rank the shortlist and put a date on the calendar before funding.</p>
           <Link href="/hackathon" className={buttonVariants({ size: "sm", className: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" })}>
@@ -315,7 +315,7 @@ export default function ArtifactPage() {
               <dl className="mt-4 grid gap-px overflow-hidden rounded-sm border border-black/10 bg-black/10 sm:grid-cols-2">
                 {[
                   ["Date", graph.hackathon.date],
-                  ["Solution", bookedTitles.join("; ") || "The solution"],
+                  ["Solutions", bookedTitles.join("; ") || "Three selected"],
                   ["Platform facilitator", graph.hackathon.googleFacilitator],
                   ["Partner specialist", graph.hackathon.partnerSpecialist],
                   ["Customer owner", graph.hackathon.customerOwner],

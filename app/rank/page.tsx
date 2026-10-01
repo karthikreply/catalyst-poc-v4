@@ -92,7 +92,7 @@ export default function RankPage() {
   const locked = graph.ranking.locked;
   const booked = Boolean(graph.hackathon?.booked);
   const coldSample = graph.session.scopeMode === "cold";
-  const canSelectMore = selectedCount < 1;
+  const canSelectMore = selectedCount < 3;
   const canSelect = canChooseShortlist(viewer.actor, graph);
   const canConfirm = canConfirmShortlist(viewer.actor, graph);
   const canUnconfirm = canUnconfirmShortlist(viewer.actor, graph);
@@ -114,10 +114,10 @@ export default function RankPage() {
           <div>
             <p className="text-sm text-black/48">{graph.session.customerName}</p>
             <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-              {coldSample ? "Sample shortlist, not this account's case" : "Shortlist"}
+              {coldSample ? "Sample rank, not this account's case" : "Rank"}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-black/58">
-              Choose one. The hackathon covers the solution.
+              Choose three. The hackathon covers the three solutions.
               {mayBook ? " Booking the hackathon is the next action." : " The partner books the hackathon."}
               {coldSample && (
                 <span className="mt-1 block text-xs text-amber-900">
@@ -157,7 +157,7 @@ export default function RankPage() {
         )}
 
         {booked && <HackathonThreeDays graph={graph} className="mt-8" />}
-        {!booked && selectedCount === 1 && (
+        {!booked && selectedCount === 3 && (
           <WhatTheThreeDaysWillBe
             solutions={selected}
             className="mt-8 rounded-sm border border-black/10 bg-white p-6"
@@ -167,8 +167,8 @@ export default function RankPage() {
         <section className="mt-8 rounded-sm border border-black/10 bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold">Shortlist</h2>
-              <p className="mt-1 text-sm text-black/55">{selectedCount} of 1 selected</p>
+              <h2 className="text-lg font-semibold">Rank</h2>
+              <p className="mt-1 text-sm text-black/55">{selectedCount} of 3 selected</p>
             </div>
             {(canConfirm || canUnconfirm) && (
               locked ? (
@@ -182,20 +182,20 @@ export default function RankPage() {
                   onClick={lockRanking}
                   className="bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]"
                 >
-                  Confirm the choice
+                  Confirm the three
                 </Button>
               )
             )}
           </div>
-          {selectedCount !== 1 && !booked && (
-            <p className="mt-3 text-xs text-black/48">Choose one.</p>
+          {selectedCount !== 3 && !booked && (
+            <p className="mt-3 text-xs text-black/48">Choose three.</p>
           )}
 
           {isCustomerViewer(viewer.actor) && graph.session.delivery !== "self-service" && (
-            <p className="mt-4 text-sm text-black/58">You vote. The partner chooses the solution.</p>
+            <p className="mt-4 text-sm text-black/58">You vote. The partner chooses the three solutions.</p>
           )}
           {isCustomerViewer(viewer.actor) && graph.session.delivery === "self-service" && (
-            <p className="mt-4 text-sm text-black/58">Choose one. The hackathon covers the solution.</p>
+            <p className="mt-4 text-sm text-black/58">Choose three. The hackathon covers the three solutions.</p>
           )}
 
           {customerViewer && (
@@ -206,7 +206,7 @@ export default function RankPage() {
                 </blockquote>
               )}
               <div className="rounded-sm border border-black/15 bg-[#fafaf8] px-4 py-3 text-sm" role="status">
-                <p className="font-semibold text-black">The solution · {topThreeTitles.length}/1</p>
+                <p className="font-semibold text-black">Your top 3 · {topThreeTitles.length}/3</p>
                 {topThreeTitles.length > 0 && (
                   <ol className="mt-1 list-decimal space-y-0.5 pl-5 text-black/80">
                     {topThreeTitles.map((title) => <li key={title}>{title}</li>)}
@@ -281,7 +281,7 @@ export default function RankPage() {
                       </div>
                     )}
                     {blockedAdd && (
-                      <p className="mt-2 text-xs text-black/48">One already selected</p>
+                      <p className="mt-2 text-xs text-black/48">Three already selected</p>
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-2">

@@ -127,7 +127,7 @@ describe("telemetryBenchmarks", () => {
   });
 
   it("reads Go as decided and a recorded sign-off as signed", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",

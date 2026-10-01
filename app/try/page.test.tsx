@@ -31,7 +31,7 @@ import TryPage from "./page";
 const at = "2026-10-01T12:00:00.000Z";
 
 function lockExtraction(graph = initialSessionGraph) {
-  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
+  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
   return lockRanking(ids.reduce((current, id) => toggleSelected(current, id), graph));
 }
 

@@ -42,7 +42,7 @@ export function HackathonBookingForm({
     <section className="mx-auto mt-5 max-w-4xl rounded-sm border border-black/10 bg-white p-6" aria-label="Book the hackathon">
       <h2 className="text-lg font-semibold text-black">Book the three-day hackathon</h2>
       <p className="mt-2 text-sm leading-6 text-black/75">
-        The three days scope a six-week pilot on this solution.
+        The three days scope a six-week pilot on these solutions.
       </p>
       <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-black/85">
         {selectedTitles.map((title) => (

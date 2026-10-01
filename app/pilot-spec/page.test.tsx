@@ -58,7 +58,7 @@ describe("pilot spec", () => {
   });
 
   it("names the picked pilot as the use case and scope, and is unchanged without a pick", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
@@ -86,7 +86,7 @@ describe("pilot spec", () => {
   });
 
   it("links day two for the customer and a facilitated partner, and shows counts to the PDM", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const locked = lockRanking(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph));
     const draft = {
       date: "2026-10-14",
@@ -123,7 +123,7 @@ describe("pilot spec", () => {
   });
 
   it("shows the booked hackathon, and no hackathon section before booking", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const selected = ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph);
     const booked = bookHackathon(selected, {
       date: "2026-10-14",
@@ -153,7 +153,7 @@ describe("pilot spec", () => {
   });
 
   it("names a blank hackathon role as not named yet", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",

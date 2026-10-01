@@ -84,7 +84,7 @@ describe("customer home", () => {
   });
 
   it("links the attending calendar only when the hackathon is booked", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
@@ -113,7 +113,7 @@ describe("customer home", () => {
       expect(readout.indexOf(title)).toBeLessThan(readout.indexOf("Start from the pain."));
     }
     expect(readout).toContain("Document AI");
-    expect(readout).not.toContain("Vertex AI");
+    expect(readout).toContain("Vertex AI");
     expect(markup).toContain("Open calendar");
     expect(markup).toContain('href="/funding"');
     expect(decoded).toContain("20261014");
@@ -194,7 +194,7 @@ describe("customer home", () => {
       { name: "Reply", industry: "Insurance", sizeBand: "Enterprise" },
       coldScopeDefaults.attendees,
     );
-    const ids = rankedSolutions(account).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(account).map((solution) => solution.id).slice(0, 3);
     const selected = ids.reduce((current, id) => toggleSelected(current, id), account);
     const booked = bookHackathon(selected, {
       date: "2026-10-14",
@@ -232,7 +232,7 @@ describe("customer home", () => {
       { name: "Reply", industry: "Insurance", sizeBand: "Enterprise" },
       coldScopeDefaults.attendees,
     );
-    const ids = rankedSolutions(account).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(account).map((solution) => solution.id).slice(0, 3);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), account), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
@@ -259,7 +259,7 @@ describe("customer home", () => {
     expect(markup).not.toContain("Prioritize my use cases");
     expect(markup).not.toContain("What the three days will be.");
 
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {
       date: "2026-10-14",
       googleFacilitator: "Priya Raghavan",
@@ -274,7 +274,7 @@ describe("customer home", () => {
   });
 
   it("adds a sample run row for the customer once the extraction solution is locked", () => {
-    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const locked = lockRanking(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph));
     mockGraph(locked);
     const notRun = renderToStaticMarkup(<CustomerHomePage />);

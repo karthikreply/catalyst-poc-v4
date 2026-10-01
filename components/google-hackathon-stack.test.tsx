@@ -24,7 +24,7 @@ vi.mock("next/navigation", () => ({
 import { GoogleHackathonStack } from "./google-hackathon-stack";
 
 function bookedGraph() {
-  const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 1);
+  const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
   const selected = ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph);
   return bookHackathon(selected, {
     date: "2026-09-30",

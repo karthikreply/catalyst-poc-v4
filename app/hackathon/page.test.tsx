@@ -48,7 +48,7 @@ describe("hackathon guard", () => {
   });
 
   it("shows the booking date once the solution is chosen", () => {
-    const ids = rankedSolutions(applyDeliveryMode(initialSessionGraph, "self-service")).map((solution) => solution.id).slice(0, 1);
+    const ids = rankedSolutions(applyDeliveryMode(initialSessionGraph, "self-service")).map((solution) => solution.id).slice(0, 3);
     const chosen = ids.reduce((current, id) => toggleSelected(current, id), applyDeliveryMode(initialSessionGraph, "self-service"));
     const markup = renderFor("customer", chosen);
     expect(markup).not.toContain(hackathonGuardCopy);

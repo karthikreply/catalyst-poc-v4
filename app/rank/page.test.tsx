@@ -31,7 +31,7 @@ vi.mock("@/components/session-provider", () => ({
 import RankPage from "./page";
 
 function selectOne(graph = initialSessionGraph) {
-  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 1);
+  const ids = rankedSolutions(graph).map((solution) => solution.id).slice(0, 3);
   return ids.reduce((current, id) => toggleSelected(current, id), graph);
 }
 
@@ -66,8 +66,8 @@ describe("Rank page", () => {
 
   it("shows the seeded shortlist with a selection count", () => {
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("Shortlist");
-    expect(markup).toContain("0 of 1 selected");
+    expect(markup).toContain("Rank");
+    expect(markup).toContain("0 of 3 selected");
     expect(markup).toContain("AI-assisted claims intake extraction");
     expect(markup).toContain("Document AI");
     expect(markup).toContain("Booking the hackathon is the next action.");
@@ -90,16 +90,16 @@ describe("Rank page", () => {
     });
 
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("1 of 1 selected");
-    expect(markup).toContain("The partner confirms the choice first.");
-    expect(markup).toContain("Confirm the choice");
+    expect(markup).toContain("3 of 3 selected");
+    expect(markup).toContain("The partner confirms the three first.");
+    expect(markup).toContain("Confirm the three");
     expect(markup).not.toContain('href="/hackathon"');
     expect(markup).not.toContain("Select three solutions first.");
     expect(markup).not.toContain("The partner or customer books the hackathon.");
     expect(markup).not.toContain("Hackathon date");
     expect(markup).not.toContain("Lock ranking");
 
-    const block = markup.slice(markup.indexOf("What the three days will be."), markup.indexOf(">Shortlist</h2>"));
+    const block = markup.slice(markup.indexOf("What the three days will be."), markup.indexOf(">Rank</h2>"));
     const solutions = rankedSolutions(selected).filter((solution) => selected.ranking.selected.includes(solution.id));
     let cursor = 0;
     for (const solution of solutions) {
@@ -118,7 +118,7 @@ describe("Rank page", () => {
     expect(block).not.toContain("Date ·");
     expect(markup).not.toContain("Which one becomes the pilot?");
     expect(markup).not.toContain("as the pilot");
-    expect(markup.indexOf("What the three days will be.")).toBeLessThan(markup.indexOf(">Shortlist</h2>"));
+    expect(markup.indexOf("What the three days will be.")).toBeLessThan(markup.indexOf(">Rank</h2>"));
   });
 
   it("opens the business case once the hackathon is booked with three titles", () => {
@@ -182,7 +182,7 @@ describe("Rank page", () => {
     expect(partnerMarkup).not.toContain("Which one becomes the pilot?");
     expect(partnerMarkup).not.toContain("Pilot not yet chosen");
     expect(partnerMarkup).toContain("2026-10-16 · 14:00");
-    const section = partnerMarkup.slice(partnerMarkup.indexOf("What the three days produce"), partnerMarkup.indexOf(">Shortlist</h2>"));
+    const section = partnerMarkup.slice(partnerMarkup.indexOf("What the three days produce"), partnerMarkup.indexOf(">Rank</h2>"));
     const rows = bookedSolutionPains(booked);
     let cursor = 0;
     for (const row of rows) {
@@ -198,7 +198,7 @@ describe("Rank page", () => {
     }
     const solutionList = section.slice(0, section.indexOf("What the three days will be."));
     expect(solutionList).not.toContain("Choose");
-    expect(rows.map((row) => section.split(`>${row.title}</p>`).length - 1)).toEqual([1]);
+    expect(rows.map((row) => section.split(`>${row.title}</p>`).length - 1)).toEqual([1, 1, 1]);
     for (const line of dayLines) {
       expect(section.indexOf(line)).toBeGreaterThan(cursor);
     }
@@ -251,9 +251,9 @@ describe("Rank page", () => {
     });
 
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("Sample shortlist, not this account");
+    expect(markup).toContain("Sample rank, not this account");
     expect(markup).toContain("Sample figures from the Heartland case, not from Reply.");
-    expect(markup).toContain("You vote. The partner chooses the solution.");
+    expect(markup).toContain("You vote. The partner chooses the three solutions.");
     const cardChunk = markup.slice(markup.indexOf("<ol"), markup.indexOf("</ol>"));
     expect(cardChunk).not.toContain("Reply");
   });
@@ -274,7 +274,7 @@ describe("Rank page", () => {
     });
 
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("0 of 1 selected");
+    expect(markup).toContain("0 of 3 selected");
     expect(markup).toContain("Booking the hackathon is the next action.");
     expect(markup).not.toContain("Book the three-day hackathon");
     expect(rankedSolutions(ledger)).toHaveLength(3);
@@ -295,8 +295,8 @@ describe("Rank page", () => {
     });
 
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("The solution · 1/1");
-    const strip = markup.slice(markup.indexOf("The solution ·"), markup.indexOf('<ol class="mt-5'));
+    expect(markup).toContain("Your top 3 · 3/3");
+    const strip = markup.slice(markup.indexOf("Your top 3"), markup.indexOf('<ol class="mt-5'));
     const titles = rankedSolutions(selected).filter((solution) => selected.ranking.selected.includes(solution.id)).map((solution) => solution.title);
     const positions = titles.map((title) => strip.indexOf(title));
     expect(positions.every((position) => position >= 0)).toBe(true);
@@ -317,7 +317,7 @@ describe("Rank page", () => {
       unlockRanking: vi.fn(),
       bookHackathon: vi.fn(),
     });
-    expect(renderToStaticMarkup(<RankPage />)).toContain("The solution · 0/1");
+    expect(renderToStaticMarkup(<RankPage />)).toContain("Your top 3 · 0/3");
 
     useSessionMock.mockReturnValue({
       graph: initialSessionGraph,
@@ -330,7 +330,7 @@ describe("Rank page", () => {
       unlockRanking: vi.fn(),
       bookHackathon: vi.fn(),
     });
-    expect(renderToStaticMarkup(<RankPage />)).not.toContain("The solution ·");
+    expect(renderToStaticMarkup(<RankPage />)).not.toContain("Your top 3");
   });
 
   it("shows the PDM reaction line", () => {
