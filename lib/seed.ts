@@ -440,7 +440,13 @@ export const initialSessionGraph: SessionGraph = {
     locked: false,
   },
   hackathon: null,
-  votes: {},
+  votes: {
+    dana: "sol-intake-extraction",
+    michelle: "sol-intake-extraction",
+    robert: "sol-low-confidence-review",
+    alex: "sol-handwriting-assist",
+    sandeep: "sol-audit-trail",
+  },
   sampleRun: null,
   attendees: [
     { id: "dana", name: "Dana Reyes", role: "VP Claims Operations", reason: "Owns the operating outcome and can sponsor the pilot.", source: "crm", attendance: "attending" },

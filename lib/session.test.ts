@@ -744,8 +744,8 @@ describe("scope access", () => {
     expect(bookBlockReason("partner", initialSessionGraph)).toBe("Choose three first.");
     expect(bookBlockReason("customer", initialSessionGraph)).toBe("Choose three first.");
     expect(bookBlockReason("pdm", initialSessionGraph)).toBe("The partner or customer books the hackathon.");
-    expect(bookBlockReason("partner", three)).toBe("The partner confirms the three first.");
-    expect(bookBlockReason("customer", three)).toBe("The partner confirms the three first.");
+    expect(bookBlockReason("partner", three)).toBe("The partner agrees the three first.");
+    expect(bookBlockReason("customer", three)).toBe("The partner agrees the three first.");
     const confirmed = { ...three, ranking: { ...three.ranking, locked: true } };
     expect(bookBlockReason("partner", confirmed)).toBeNull();
     expect(bookBlockReason("customer", confirmed)).toBeNull();
@@ -1037,7 +1037,8 @@ describe("solution ranking and hackathon booking", () => {
   it("stores one vote per attendee without reordering ranking", () => {
     const order = [...initialSessionGraph.ranking.order];
     const ids = rankedSolutions(initialSessionGraph).map((s) => s.id);
-    const first = castVote(initialSessionGraph, "dana", ids[0]);
+    const blank = { ...initialSessionGraph, votes: {} };
+    const first = castVote(blank, "dana", ids[0]);
     const second = castVote(first, "dana", ids[1]);
     expect(second.votes.dana).toBe(ids[1]);
     expect(voteTallies(second)[ids[0]] ?? 0).toBe(0);

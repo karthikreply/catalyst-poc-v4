@@ -258,7 +258,7 @@ export function hydrateSessionGraph(value: SessionGraph | null): SessionGraph {
           meetAdded: Boolean(value.hackathon.meetAdded),
         }
       : null,
-    votes: migrateVoteKeys(value.votes),
+    votes: hydrateVotes(value),
     sampleRun: hydrateSampleRun(value.sampleRun),
   };
 }
@@ -703,6 +703,14 @@ function migrateVoteKeys(votes: unknown): Record<string, string> {
   return next;
 }
 
+/** Empty seeded sessions show the room's indication. A cold account starts with none. */
+function hydrateVotes(value: { votes?: unknown; session?: { scopeMode?: string } }): Record<string, string> {
+  const votes = migrateVoteKeys(value.votes);
+  if (Object.keys(votes).length > 0) return votes;
+  if (value.session?.scopeMode === "cold") return {};
+  return { ...initialSessionGraph.votes };
+}
+
 function migrateConfirmedBy<T extends { confirmedBy: string | null }>(rows: T[]): T[] {
   return rows.map((row) => (
     row.confirmedBy === legacyCustomerActor
@@ -803,7 +811,7 @@ export function earliestIncompleteStep(graph: SessionGraph): { href: string; lab
 export function bookBlockReason(actor: Actor, graph: SessionGraph): string | null {
   if (actor === "pdm" || !canBookHackathon(actor)) return "The partner or customer books the hackathon.";
   if (graph.ranking.selected.length !== 3) return "Choose three first.";
-  if (graph.session.delivery !== "self-service" && !graph.ranking.locked) return "The partner confirms the three first.";
+  if (graph.session.delivery !== "self-service" && !graph.ranking.locked) return "The partner agrees the three first.";
   return null;
 }
 

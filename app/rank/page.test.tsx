@@ -91,8 +91,8 @@ describe("Rank page", () => {
 
     const markup = renderToStaticMarkup(<RankPage />);
     expect(markup).toContain("3 of 3 selected");
-    expect(markup).toContain("The partner confirms the three first.");
-    expect(markup).toContain("Confirm the three");
+    expect(markup).toContain("The partner agrees the three first.");
+    expect(markup).toContain("Agree these three");
     expect(markup).not.toContain('href="/hackathon"');
     expect(markup).not.toContain("Select three solutions first.");
     expect(markup).not.toContain("The partner or customer books the hackathon.");
@@ -434,7 +434,7 @@ describe("Rank page", () => {
   });
 
   it("shows votes and evidence on every row, and the program line only for the partner", () => {
-    let graph = castVote(initialSessionGraph, "michelle", "sol-intake-extraction");
+    let graph = castVote({ ...initialSessionGraph, votes: {} }, "michelle", "sol-intake-extraction");
     graph = castVote(graph, "robert", "sol-intake-extraction");
     graph = {
       ...graph,
@@ -525,6 +525,10 @@ describe("Rank page", () => {
     });
     const seeded = renderToStaticMarkup(<RankPage />);
     expect(seeded).toContain("2 quotes · Michelle Dorsey, Dana Reyes");
+    expect(seeded).toContain("2 votes · Dana Reyes, Michelle Dorsey");
+    expect(seeded).toContain("1 vote · Robert Osei");
+    expect(seeded).toContain("1 vote · Alex Chen");
+    expect(seeded).toContain("1 vote · Sandeep Nair");
     expect(seeded).toContain("0 votes");
 
     const cold = applyColdScope(

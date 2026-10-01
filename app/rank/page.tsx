@@ -173,7 +173,7 @@ export default function RankPage() {
             {(canConfirm || canUnconfirm) && (
               locked ? (
                 <Button type="button" variant="outline" size="sm" onClick={unlockRanking} disabled={booked}>
-                  Unconfirm
+                  Change the three
                 </Button>
               ) : (
                 <Button
@@ -182,7 +182,7 @@ export default function RankPage() {
                   onClick={lockRanking}
                   className="bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]"
                 >
-                  Confirm the three
+                  Agree these three
                 </Button>
               )
             )}
@@ -192,7 +192,7 @@ export default function RankPage() {
           )}
           {viewer.actor === "partner" && !canSelect && (booked || locked) && (
             <p className="mt-3 text-sm text-black/62" role="status">
-              {booked ? "Booked. The three solutions are fixed." : "Confirmed. Unconfirm to change the three."}
+              {booked ? "Booked. The three solutions are fixed." : "Agreed. Change the three to pick again."}
             </p>
           )}
 

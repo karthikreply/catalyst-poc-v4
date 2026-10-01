@@ -174,19 +174,14 @@ describe("customer door Scope", () => {
     expect(started.session.delivery).toBe("self-service");
   });
 
-  it("shows the account and the known pain, with no lookup, to an attending customer", () => {
+  it("shows account lookup to a customer on the partner-led session", () => {
     const markup = renderAttendingCustomerScope();
 
-    expect(markup).toContain("You are attending. The pain is already on the account.");
-    expect(markup).toContain("Heartland Mutual Insurance");
-    expect(markup).toContain("Known pain");
-    expect(markup).toContain("Intake sits six days, mostly manual PDF reading.");
-    expect(markup).toContain('href="/plan"');
-    expect(markup).toContain("Plan the session");
-    expect(markup).not.toContain('href="/run"');
-    expect(markup).not.toContain("Look up your account");
-    expect(markup).not.toContain("Customer entry");
-    expect(markup).not.toContain("Company name");
+    expect(markup).toContain("Customer entry");
+    expect(markup).toContain("Look up your account");
+    expect(markup).not.toContain("You are attending.");
+    expect(markup).not.toContain("Known pain");
+    expect(markup).not.toContain('href="/plan"');
     expect(markup).not.toContain("Close date pushed");
     expect(markup).not.toContain("Start without the record");
   });
