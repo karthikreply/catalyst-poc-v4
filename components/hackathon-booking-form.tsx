@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,13 +30,25 @@ export function HackathonBookingForm({
       showcaseAt: base.showcaseAt ?? "",
     };
   });
+  const dateRef = useRef<HTMLLabelElement>(null);
+  const [needsDate, setNeedsDate] = useState(false);
   const showcaseAt = draft.showcaseAt || defaultShowcaseAt(draft.date);
-  const fieldsReady =
-    draft.date.trim()
-    && draft.googleFacilitator.trim()
+  const detailsReady = Boolean(
+    draft.googleFacilitator.trim()
     && draft.partnerSpecialist.trim()
     && draft.customerOwner.trim()
-    && draft.question.trim();
+    && draft.question.trim(),
+  );
+
+  function book() {
+    if (!draft.date.trim()) {
+      setNeedsDate(true);
+      dateRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("hackathon-date")?.focus();
+      return;
+    }
+    bookHackathon({ ...draft, showcaseAt });
+  }
 
   return (
     <section className="mx-auto mt-5 max-w-4xl rounded-sm border border-black/10 bg-white p-6" aria-label="Book the hackathon">
@@ -50,15 +62,21 @@ export function HackathonBookingForm({
         ))}
       </ul>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-1.5 text-sm">
+        <label ref={dateRef} className={`grid gap-1.5 rounded-sm text-sm ${needsDate ? "bg-[color-mix(in_srgb,var(--brand-accent)_14%,white)] p-3 ring-2 ring-[var(--brand-accent)]" : ""}`}>
           <span className="text-xs font-medium text-black/70">Hackathon date</span>
           <Input
+            id="hackathon-date"
             type="date"
             value={draft.date}
             disabled={!canEdit}
-            onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))}
+            onChange={(event) => {
+              setNeedsDate(false);
+              setDraft((current) => ({ ...current, date: event.target.value }));
+            }}
             aria-label="Hackathon date"
+            aria-invalid={needsDate}
           />
+          {needsDate && <span className="text-xs font-medium text-black">Choose the date on the calendar.</span>}
         </label>
         <label className="grid gap-1.5 text-sm">
           <span className="text-xs font-medium text-black/70">Solution showcase</span>
@@ -111,9 +129,9 @@ export function HackathonBookingForm({
       <div className="mt-5">
         <Button
           type="button"
-          disabled={!canEdit || !fieldsReady}
+          disabled={!canEdit || !detailsReady}
           className="bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]"
-          onClick={() => bookHackathon({ ...draft, showcaseAt })}
+          onClick={book}
         >
           Book hackathon
         </Button>

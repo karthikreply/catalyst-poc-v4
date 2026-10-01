@@ -310,7 +310,7 @@ describe("Try it", () => {
   it("explains a disabled book button", () => {
     useSessionMock.mockReturnValue(sessionValue(initialSessionGraph, "pdm"));
     const markup = renderToStaticMarkup(<TryPage />);
-    expect(markup).toContain("The partner or customer books the hackathon.");
+    expect(markup).toContain("Choose three first.");
     expect(markup).not.toContain('href="/hackathon"');
     const describedBy = markup.match(/aria-describedby="([^"]+)"/)?.[1];
     expect(describedBy).toBeTruthy();

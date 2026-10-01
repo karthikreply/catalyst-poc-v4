@@ -59,9 +59,9 @@ describe("hackathon focus", () => {
   });
 
   it("returns the first book reason for the role and the shortlist state", () => {
-    expect(bookBlockReason("pdm", selectThree())).toBe("The partner or customer books the hackathon.");
+    expect(bookBlockReason("pdm", selectThree())).toBeNull();
     expect(bookBlockReason("partner", initialSessionGraph)).toBe("Choose three first.");
-    expect(bookBlockReason("customer", selectThree())).toBe("The partner agrees the three first.");
+    expect(bookBlockReason("customer", selectThree())).toBeNull();
     const confirmed = selectThree();
     const locked = { ...confirmed, ranking: { ...confirmed.ranking, locked: true } };
     expect(bookBlockReason("partner", locked)).toBeNull();

@@ -83,6 +83,7 @@ describe("hackathon solutions", () => {
     });
     const markup = renderFor("customer", booked);
     expect(markup).toMatch(/<a href="https:\/\/calendar\.google\.com[^"]*" target="_blank" rel="noopener noreferrer"/);
+    expect(markup).toContain('id="hackathon-calendar"');
     expect(markup).toContain("Next: the business case");
     expect(markup).toContain('href="/artifact"');
   });

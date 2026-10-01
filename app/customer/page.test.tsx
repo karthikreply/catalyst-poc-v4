@@ -84,6 +84,23 @@ describe("customer home", () => {
     expect(markup).not.toContain("You are attending.");
   });
 
+  it("puts the three-day shape in the session summary once three are chosen", () => {
+    const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
+    const selected = ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph);
+    mockGraph(selected);
+    const markup = renderToStaticMarkup(<CustomerHomePage />);
+    const summary = markup.slice(markup.indexOf("Your session"), markup.indexOf("Schedule a hackathon"));
+
+    expect(summary).toContain("What the three days will be.");
+    expect(summary.indexOf("What the three days will be.")).toBeLessThan(summary.indexOf("Start from the pain."));
+    for (const solution of rankedSolutions(selected).filter((solution) => ids.includes(solution.id))) {
+      expect(summary).toContain(solution.title);
+    }
+    expect(summary).toContain("Day 1.");
+    expect(summary).toContain("Day 2.");
+    expect(summary).toContain("Day 3.");
+  });
+
   it("links the attending calendar only when the hackathon is booked", () => {
     const ids = rankedSolutions(initialSessionGraph).map((solution) => solution.id).slice(0, 3);
     const booked = bookHackathon(ids.reduce((current, id) => toggleSelected(current, id), initialSessionGraph), {

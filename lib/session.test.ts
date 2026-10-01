@@ -731,7 +731,7 @@ describe("scope access", () => {
     expect(canViewPartnerScope("pdm")).toBe(true);
     expect(canBookHackathon("partner")).toBe(true);
     expect(canBookHackathon("customer")).toBe(true);
-    expect(canBookHackathon("pdm")).toBe(false);
+    expect(canBookHackathon("pdm")).toBe(true);
     expect(canViewPartnerScope("customer")).toBe(false);
   });
 
@@ -740,12 +740,12 @@ describe("scope access", () => {
       ...initialSessionGraph,
       ranking: { ...initialSessionGraph.ranking, selected: ["a", "b", "c"] },
     };
-    expect(bookBlockReason("pdm", three)).toBe("The partner or customer books the hackathon.");
+    expect(bookBlockReason("pdm", three)).toBeNull();
     expect(bookBlockReason("partner", initialSessionGraph)).toBe("Choose three first.");
     expect(bookBlockReason("customer", initialSessionGraph)).toBe("Choose three first.");
-    expect(bookBlockReason("pdm", initialSessionGraph)).toBe("The partner or customer books the hackathon.");
+    expect(bookBlockReason("pdm", initialSessionGraph)).toBe("Choose three first.");
     expect(bookBlockReason("partner", three)).toBe("The partner agrees the three first.");
-    expect(bookBlockReason("customer", three)).toBe("The partner agrees the three first.");
+    expect(bookBlockReason("customer", three)).toBeNull();
     const confirmed = { ...three, ranking: { ...three.ranking, locked: true } };
     expect(bookBlockReason("partner", confirmed)).toBeNull();
     expect(bookBlockReason("customer", confirmed)).toBeNull();

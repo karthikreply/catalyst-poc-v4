@@ -98,24 +98,8 @@ describe("Rank page", () => {
     expect(markup).not.toContain("The partner or customer books the hackathon.");
     expect(markup).not.toContain("Hackathon date");
     expect(markup).not.toContain("Lock ranking");
-
-    const block = markup.slice(markup.indexOf("What the three days will be."), markup.indexOf(">Rank</h2>"));
-    const solutions = rankedSolutions(selected).filter((solution) => selected.ranking.selected.includes(solution.id));
-    let cursor = 0;
-    for (const solution of solutions) {
-      const titleAt = block.indexOf(solution.title, cursor);
-      expect(titleAt).toBeGreaterThanOrEqual(cursor);
-      for (const product of solution.products) {
-        expect(block.indexOf(product, titleAt)).toBeGreaterThan(titleAt);
-      }
-      cursor = titleAt + solution.title.length;
-    }
-    for (const line of dayLines) {
-      expect(block.indexOf(line)).toBeGreaterThan(cursor);
-    }
-    expect(block).not.toContain("Choose");
-    expect(block).not.toContain("Solution showcase");
-    expect(block).not.toContain("Date ·");
+    expect(markup).not.toContain("What the three days will be.");
+    expect(markup).not.toContain("Start from the pain.");
     expect(markup).not.toContain("Which one becomes the pilot?");
     expect(markup).not.toContain("as the pilot");
     expect(markup.indexOf("What the three days will be.")).toBeLessThan(markup.indexOf(">Rank</h2>"));
@@ -253,7 +237,9 @@ describe("Rank page", () => {
     const markup = renderToStaticMarkup(<RankPage />);
     expect(markup).toContain("Sample rank, not this account");
     expect(markup).toContain("Sample figures from the Heartland case, not from Reply.");
-    expect(markup).toContain("You vote. The partner chooses the three solutions.");
+    expect(markup).toContain("Choose three for the hackathon.");
+    expect(markup).toContain(">Select<");
+    expect(markup).not.toContain("The partner chooses the three solutions.");
     const cardChunk = markup.slice(markup.indexOf("<ol"), markup.indexOf("</ol>"));
     expect(cardChunk).not.toContain("Reply");
   });
@@ -297,6 +283,9 @@ describe("Rank page", () => {
 
     const markup = renderToStaticMarkup(<RankPage />);
     expect(markup).toContain("Your top 3 · 3/3");
+    expect(markup).toContain('href="/hackathon"');
+    expect(markup).toContain("Book the hackathon");
+    expect(markup).not.toContain("The partner agrees the three first.");
     const strip = markup.slice(markup.indexOf("Your top 3"), markup.indexOf('<ol class="mt-5'));
     const titles = rankedSolutions(selected).filter((solution) => selected.ranking.selected.includes(solution.id)).map((solution) => solution.title);
     const positions = titles.map((title) => strip.indexOf(title));
@@ -348,8 +337,9 @@ describe("Rank page", () => {
     });
     const markup = renderToStaticMarkup(<RankPage />);
     expect(markup).toContain("Here is what the session produced. What would you like to do with it?");
-    expect(markup).toContain("The partner books the hackathon.");
-    expect(markup).not.toContain("Book hackathon");
+    expect(markup).toContain(">Select<");
+    expect(markup).toContain("Book the hackathon");
+    expect(markup).toContain("Choose three first.");
   });
 
   it("keeps the booking form off the PDM page after three are selected", () => {
@@ -367,11 +357,9 @@ describe("Rank page", () => {
     const markup = renderToStaticMarkup(<RankPage />);
     expect(markup).not.toContain('href="/artifact"');
     expect(markup).not.toContain("Hackathon date");
-    expect(markup).not.toContain("A PDM does not book it.");
-    expect(markup).toContain("The partner or customer books the hackathon.");
-    const describedBy = markup.match(/aria-describedby="([^"]+)"/)?.[1];
-    expect(describedBy).toBeTruthy();
-    expect(markup).toContain(`id="${describedBy}"`);
+    expect(markup).toContain('href="/hackathon"');
+    expect(markup).toContain("Book the hackathon");
+    expect(markup).not.toContain("The partner or customer books the hackathon.");
   });
 
   it("offers Try it as the primary action once the extraction solution is locked, then swaps after a run", () => {
@@ -433,7 +421,7 @@ describe("Rank page", () => {
     expect(renderToStaticMarkup(<RankPage />)).not.toContain("Try it on sample claims");
   });
 
-  it("shows votes and evidence on every row, and the program line only for the partner", () => {
+  it("shows relevance on every row without vote or quote lines, and the program line only for the partner", () => {
     let graph = castVote({ ...initialSessionGraph, votes: {} }, "michelle", "sol-intake-extraction");
     graph = castVote(graph, "robert", "sol-intake-extraction");
     graph = {
@@ -458,10 +446,10 @@ describe("Rank page", () => {
 
     for (const actor of ["partner", "customer"] as const) {
       const markup = show(actor);
-      expect(markup).toContain("2 votes · Michelle Dorsey, Robert Osei");
-      expect(markup).toContain("0 votes");
-      expect(markup).toContain("2 quotes · Michelle Dorsey, Dana Reyes");
-      expect(markup).toContain("3 quotes · Michelle Dorsey, Robert Osei, Alex Chen");
+      expect(markup).not.toContain("votes ·");
+      expect(markup).not.toContain("0 votes");
+      expect(markup).toContain("Relevance 86");
+      expect(markup).not.toContain("quotes ·");
       expect(markup).not.toContain("No evidence yet.");
     }
 
@@ -512,7 +500,7 @@ describe("Rank page", () => {
     expect(search).not.toContain("#4285F4");
   });
 
-  it("shows a zero vote count and omits empty evidence, including a cold account with no captures", () => {
+  it("shows relevance on a seeded session and on a cold account with no captures", () => {
     useSessionMock.mockReturnValue({
       graph: initialSessionGraph,
       viewer: { actor: "partner", name: "Ravi Menon", org: "CDW" },
@@ -524,12 +512,11 @@ describe("Rank page", () => {
       unlockRanking: vi.fn(),
     });
     const seeded = renderToStaticMarkup(<RankPage />);
-    expect(seeded).toContain("2 quotes · Michelle Dorsey, Dana Reyes");
-    expect(seeded).toContain("2 votes · Dana Reyes, Michelle Dorsey");
-    expect(seeded).toContain("1 vote · Robert Osei");
-    expect(seeded).toContain("1 vote · Alex Chen");
-    expect(seeded).toContain("1 vote · Sandeep Nair");
-    expect(seeded).toContain("0 votes");
+    expect(seeded).not.toContain("quotes ·");
+    expect(seeded).not.toContain("votes ·");
+    expect(seeded).not.toContain("0 votes");
+    expect(seeded).toContain("Relevance 86");
+    expect(seeded).toContain("Relevance 33");
 
     const cold = applyColdScope(
       initialSessionGraph,
@@ -547,7 +534,9 @@ describe("Rank page", () => {
       unlockRanking: vi.fn(),
     });
     const markup = renderToStaticMarkup(<RankPage />);
-    expect(markup).toContain("0 votes");
+    expect(markup).not.toContain("0 votes");
+    expect(markup).toContain("Relevance 86");
+    expect(markup).not.toContain("star rating");
     expect(markup).not.toContain("No evidence yet.");
     expect(markup).not.toContain("quotes ·");
   });

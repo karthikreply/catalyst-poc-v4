@@ -6,7 +6,6 @@ import { ArrowRight, File, Layers, ScrollText, Search } from "lucide-react";
 import { BookHackathonAction } from "@/components/book-hackathon-action";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { HackathonThreeDays } from "@/components/hackathon-three-days";
-import { WhatTheThreeDaysWillBe } from "@/components/what-the-three-days-will-be";
 import { useSession } from "@/components/session-provider";
 import { patterns } from "@/lib/seed";
 import { isCustomerViewer,
@@ -32,29 +31,23 @@ const productIcons: Record<string, typeof File> = {
   "Cloud Logging": ScrollText,
 };
 
-function votersFor(graph: ReturnType<typeof useSession>["graph"], solutionId: string) {
-  return graph.attendees.filter((person) => graph.votes[person.id] === solutionId);
-}
+/** Stable indication of how often a solution comes up. Not a live tally. */
+const solutionRelevance: Record<string, number> = {
+  "sol-intake-extraction": 86,
+  "sol-low-confidence-review": 74,
+  "sol-handwriting-assist": 61,
+  "sol-audit-trail": 55,
+  "sol-overtime-reduction": 48,
+  "sol-rework-leakage": 41,
+  "sol-status-summary": 33,
+};
 
-function voteCountLabel(count: number) {
-  return count === 1 ? "1 vote" : `${count} votes`;
-}
-
-function voteLine(graph: ReturnType<typeof useSession>["graph"], solutionId: string) {
-  const voters = votersFor(graph, solutionId);
-  if (!voters.length) return null;
-  return `${voteCountLabel(voters.length)} · ${voters.map((person) => person.name).join(", ")}`;
-}
-
-function evidenceLine(graph: ReturnType<typeof useSession>["graph"], stepId: string | undefined) {
-  const quotes = graph.captures.filter((capture) => capture.stepId === stepId);
-  if (!quotes.length) return null;
-  const names: string[] = [];
-  for (const quote of quotes) {
-    if (!names.includes(quote.attributedTo)) names.push(quote.attributedTo);
-  }
-  const label = quotes.length === 1 ? "quote" : "quotes";
-  return `${quotes.length} ${label} · ${names.join(", ")}`;
+function relevanceScore(solutionId: string) {
+  const known = solutionRelevance[solutionId];
+  if (known) return known;
+  let hash = 0;
+  for (const char of solutionId) hash = (hash + char.charCodeAt(0)) % 37;
+  return 24 + hash;
 }
 
 const geminiColors = ["#4285F4", "#EA4335", "#FBBC05", "#34A853"] as const;
@@ -118,7 +111,7 @@ export default function RankPage() {
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-black/58">
               Choose three. The hackathon covers the three solutions.
-              {mayBook ? " Booking the hackathon is the next action." : " The partner books the hackathon."}
+              {mayBook ? " Booking the hackathon is the next action." : " The partner or customer books the hackathon."}
               {coldSample && (
                 <span className="mt-1 block text-xs text-amber-900">
                   Sample figures from the Heartland case, not from {graph.session.customerName}.
@@ -133,9 +126,9 @@ export default function RankPage() {
             <Link href="/artifact" className={buttonVariants({ className: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" })}>
               Open business case <ArrowRight />
             </Link>
-          ) : (
+          ) : mayBook ? (
             <BookHackathonAction primary />
-          )}
+          ) : null}
         </div>
 
         {showTryCard && (
@@ -143,13 +136,13 @@ export default function RankPage() {
             <div className="flex flex-wrap gap-3">
               {tried ? (
                 <>
-                  <BookHackathonAction primary />
+                  {mayBook && <BookHackathonAction primary />}
                   <Link href="/try" className={rankActionClass(false)}>Try it on sample claims</Link>
                 </>
               ) : (
                 <>
                   <Link href="/try" className={rankActionClass(true)}>Try it on sample claims</Link>
-                  <BookHackathonAction />
+                  {mayBook && <BookHackathonAction />}
                 </>
               )}
             </div>
@@ -157,12 +150,6 @@ export default function RankPage() {
         )}
 
         {booked && <HackathonThreeDays graph={graph} className="mt-8" />}
-        {!booked && selectedCount === 3 && (
-          <WhatTheThreeDaysWillBe
-            solutions={selected}
-            className="mt-8 rounded-sm border border-black/10 bg-white p-6"
-          />
-        )}
 
         <section className="mt-8 rounded-sm border border-black/10 bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -196,11 +183,8 @@ export default function RankPage() {
             </p>
           )}
 
-          {isCustomerViewer(viewer.actor) && graph.session.delivery !== "self-service" && (
-            <p className="mt-4 text-sm text-black/58">You vote. The partner chooses the three solutions.</p>
-          )}
-          {isCustomerViewer(viewer.actor) && graph.session.delivery === "self-service" && (
-            <p className="mt-4 text-sm text-black/58">Choose three. The hackathon covers the three solutions.</p>
+          {isCustomerViewer(viewer.actor) && (
+            <p className="mt-4 text-sm text-black/58">Choose three for the hackathon.</p>
           )}
 
           {customerViewer && (
@@ -225,9 +209,7 @@ export default function RankPage() {
             {ordered.map((solution, index) => {
               const isSelected = graph.ranking.selected.includes(solution.id);
               const blockedAdd = !isSelected && !canSelectMore && !locked && !booked;
-              const voteCount = votersFor(graph, solution.id).length;
-              const votes = voteLine(graph, solution.id);
-              const evidence = evidenceLine(graph, solution.stepId);
+              const relevance = relevanceScore(solution.id);
               return (
                 <li
                   key={solution.id}
@@ -239,8 +221,6 @@ export default function RankPage() {
                   <span className="text-sm font-semibold text-black/45">{index + 1}</span>
                   <div>
                     <p className="font-semibold">{solution.title}</p>
-                    {votes && <p className="mt-1 text-sm text-black/70">{votes}</p>}
-                    {evidence && <p className="mt-1 text-sm text-black/70">{evidence}</p>}
                     {programSignal && <p className="mt-1 text-xs text-black/48">{programSignal}</p>}
                     <p className="mt-1 text-sm leading-6 text-black/62">{solution.outcome}</p>
                     <p className="mt-1 text-xs text-black/48">{solution.valueAnchor}</p>
@@ -290,7 +270,9 @@ export default function RankPage() {
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <p className="text-sm font-medium text-black/70">{voteCountLabel(voteCount)}</p>
+                    <p className={cn("text-xs", relevance >= 70 ? "font-semibold text-black" : "text-black/55")}>
+                      Relevance {relevance}
+                    </p>
                     {canSelect && !locked && !booked && (
                       <Button
                         type="button"

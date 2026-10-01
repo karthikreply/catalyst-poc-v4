@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import { BookHackathonAction } from "@/components/book-hackathon-action";
@@ -10,6 +11,7 @@ import { useSession } from "@/components/session-provider";
 import {
   bookBlockReason,
   bookedSolutionTitles,
+  canBookHackathon,
   canChooseShortlist,
   canRecordHackathonDecision,
   catalogSolutionById,
@@ -63,12 +65,18 @@ export default function HackathonPage() {
     recordNotGoingAhead,
     markPilotSigned,
   } = useSession();
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const [highlightCalendar, setHighlightCalendar] = useState(false);
+  const booked = Boolean(graph.hackathon?.booked);
+  useEffect(() => {
+    if (!highlightCalendar || !booked) return;
+    calendarRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightCalendar, booked]);
 
   if (!sessionReachedShortlist(graph)) return <HackathonGuard graph={graph} />;
 
   const customer = isCustomerViewer(viewer.actor);
   const pdm = viewer.actor === "pdm";
-  const booked = Boolean(graph.hackathon?.booked);
   const state = hackathonStateLabel(graph);
   const titles = booked ? bookedSolutionTitles(graph) : selectedSolutions(graph).map((solution) => solution.title);
   const solutions = booked
@@ -80,7 +88,7 @@ export default function HackathonPage() {
   const mayRecord = canRecordHackathonDecision(viewer.actor, graph);
   const mayChoose = canChooseShortlist(viewer.actor, graph);
   const reason = bookBlockReason(viewer.actor, graph);
-  const showForm = !booked && !reason && !pdm;
+  const showForm = !booked && !reason;
   const calendarUrl = booked ? googleCalendarComposeUrl(graph, brand.partnerName) : "";
   const partnerOfRecord = graph.session.facilitator?.name || brand.partnerName;
 
@@ -89,8 +97,16 @@ export default function HackathonPage() {
       <div className="mx-auto max-w-4xl">
         <p className="text-sm font-semibold text-black/55">{state}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">{customer ? "Your hackathon" : "Hackathon"}</h1>
+        {booked && (
+          <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm" aria-label="Next step">
+            <span className="font-semibold">Next: the business case</span>
+            <Link href="/artifact" className="font-semibold text-[var(--brand-accent)] underline underline-offset-2">
+              Open the business case
+            </Link>
+          </p>
+        )}
         {customer && graph.session.delivery !== "self-service" && !booked && (
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/70">You vote. The partner chooses the three solutions.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/70">Choose three on Rank.</p>
         )}
         {customer && graph.session.delivery === "self-service" && !booked && (
           <p className="mt-2 max-w-2xl text-sm leading-6 text-black/70">Choose three. You book the hackathon.</p>
@@ -151,7 +167,7 @@ export default function HackathonPage() {
           </section>
         )}
 
-        {!booked && <div className="mt-5"><BookHackathonAction primary /></div>}
+        {!booked && canBookHackathon(viewer.actor) && <div className="mt-5"><BookHackathonAction primary /></div>}
 
         {showForm && (
           <HackathonBookingForm
@@ -159,12 +175,19 @@ export default function HackathonPage() {
             graph={graph}
             selectedTitles={titles}
             canEdit
-            bookHackathon={bookHackathon}
+            bookHackathon={(draft) => {
+              bookHackathon(draft);
+              setHighlightCalendar(true);
+            }}
           />
         )}
 
         {booked && !pdm && (
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div
+            ref={calendarRef}
+            id="hackathon-calendar"
+            className={`mt-5 flex flex-wrap gap-3 rounded-sm ${highlightCalendar ? "bg-[color-mix(in_srgb,var(--brand-accent)_14%,white)] p-4 ring-2 ring-[var(--brand-accent)]" : ""}`}
+          >
             {calendarUrl && (
               <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ className: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]" })}>
                 {customer ? "Open calendar" : "Add to Google Calendar"}
@@ -218,17 +241,6 @@ export default function HackathonPage() {
           <p className="mt-5 text-sm" role="status">Pilot status · {pilotStatus(graph)}</p>
         )}
 
-        {booked && (
-          <section className="mt-6 rounded-sm border border-black/10 bg-white p-6" aria-label="Next step">
-            <h2 className="text-lg font-semibold">Next: the business case</h2>
-            <p className="mt-1 text-sm leading-6 text-black/62">
-              The business case carries the session evidence, these three solutions, and the hackathon date into the funding ask.
-            </p>
-            <Link href="/artifact" className={`${buttonVariants()} mt-4 bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-dark)]`}>
-              Open the business case
-            </Link>
-          </section>
-        )}
       </div>
     </div>
   );

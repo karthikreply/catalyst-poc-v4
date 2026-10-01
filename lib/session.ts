@@ -785,9 +785,9 @@ export function canViewPartnerScope(actor: Actor) {
   return actor === "partner" || actor === "pdm";
 }
 
-/** The partner or the customer books the three days. The PDM reviews the shortlist. */
+/** The partner, the customer, or the Google PDM books the three days. */
 export function canBookHackathon(actor: Actor) {
-  return actor === "partner" || isCustomerViewer(actor);
+  return actor === "partner" || actor === "pdm" || isCustomerViewer(actor);
 }
 
 export const hackathonGuardCopy = "A hackathon follows a value session. Run one first.";
@@ -809,19 +809,17 @@ export function earliestIncompleteStep(graph: SessionGraph): { href: string; lab
 
 /** Why booking is unavailable, or null when the viewer may open the booking form. */
 export function bookBlockReason(actor: Actor, graph: SessionGraph): string | null {
-  if (actor === "pdm" || !canBookHackathon(actor)) return "The partner or customer books the hackathon.";
+  if (!canBookHackathon(actor)) return "The partner or customer books the hackathon.";
   if (graph.ranking.selected.length !== 3) return "Choose three first.";
-  if (graph.session.delivery !== "self-service" && !graph.ranking.locked) return "The partner agrees the three first.";
+  if (actor === "partner" && graph.session.delivery !== "self-service" && !graph.ranking.locked) return "The partner agrees the three first.";
   return null;
 }
 
-/** The partner chooses on any session. The customer also chooses on self-service. The PDM does not. */
+/** The partner, the Google PDM, and the customer choose. Locked and booked shortlists stay fixed. */
 export function canChooseShortlist(actor: Actor, graph: SessionGraph) {
   if (graph.ranking.locked || graph.hackathon?.booked) return false;
-  if (actor === "pdm") return false;
-  if (actor === "partner") return true;
-  if (graph.session.delivery === "self-service") return isCustomerViewer(actor);
-  return false;
+  if (actor === "partner" || actor === "pdm") return true;
+  return isCustomerViewer(actor);
 }
 
 export function canConfirmShortlist(actor: Actor, graph: SessionGraph) {

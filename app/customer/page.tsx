@@ -6,15 +6,16 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarDays, FileText, BadgeDollarSign, ListOrdered, Hourglass } from "lucide-react";
 
 import { UnavailableControl } from "@/components/unavailable-control";
-import { CustomerBookedThreeDays } from "@/components/what-the-three-days-will-be";
+import { CustomerBookedThreeDays, WhatTheThreeDaysWillBe } from "@/components/what-the-three-days-will-be";
 import { useSession } from "@/components/session-provider";
-import type { Mechanic } from "@/lib/seed";
+import type { Mechanic, SessionGraph } from "@/lib/seed";
 import {
   agendaForSession,
   customerFormatLabels,
   customerGreeting,
   customerHasAccount,
   customerHomeSummary,
+  selectedSolutions,
   customerSampleRunLabel,
   googleCalendarComposeUrl,
   handoffLabel,
@@ -76,6 +77,7 @@ export default function CustomerHomePage() {
             <SummaryItem term="Handoff" detail={handoff} />
             {sampleRunLabel && <SummaryItem term="Sample run" detail={sampleRunLabel} href={sampleRunHref} />}
           </dl>
+          <ChosenThreeDays graph={graph} />
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/scope" className="md-button-filled">
               Open the session <ArrowRight className="size-4" />
@@ -157,6 +159,7 @@ export default function CustomerHomePage() {
           <SummaryItem term="Handoff" detail={handoff} />
           {sampleRunLabel && <SummaryItem term="Sample run" detail={sampleRunLabel} href={sampleRunHref} />}
         </dl>
+        <ChosenThreeDays graph={graph} />
         {(summary.continueHref || hasAccount) && (
           <div className="mt-6 flex flex-wrap gap-3">
             {summary.continueHref && (
@@ -196,6 +199,19 @@ export default function CustomerHomePage() {
         </div>
       </section>}
     </div>
+  );
+}
+
+function ChosenThreeDays({ graph }: { graph: SessionGraph }) {
+  if (graph.hackathon?.booked || graph.ranking.selected.length !== 3) return null;
+  const solutions = selectedSolutions(graph);
+  if (solutions.length !== 3) return null;
+  return (
+    <WhatTheThreeDaysWillBe
+      solutions={solutions}
+      tone="customer"
+      className="mt-6 border-t border-black/10 pt-6"
+    />
   );
 }
 
